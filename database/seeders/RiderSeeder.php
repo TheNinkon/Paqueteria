@@ -12,7 +12,7 @@ class RiderSeeder extends Seeder
         $riderRole = Role::firstOrCreate(['name' => 'Repartidor', 'guard_name' => 'repartidor']);
 
         $rider = Rider::firstOrCreate([
-            'email' => 'repartidor@example.com',
+            'email' => 'repartidor@rider.com',
         ], [
             'full_name' => 'Repartidor Test',
             'phone' => '123456789',

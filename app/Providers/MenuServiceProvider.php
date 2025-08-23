@@ -1,8 +1,9 @@
 <?php
+
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\File;
 
 class MenuServiceProvider extends ServiceProvider
@@ -14,32 +15,32 @@ class MenuServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $verticalMenuPath = '';
-        $horizontalMenuPath = '';
+        $verticalMenuData = json_decode('{"menu": []}'); // Menú vacío por defecto
 
-        // Lógica para cargar el menú dinámicamente según el rol
-        if (Auth::check()) {
-            if (Auth::user()->hasRole('Administrador')) {
-                $verticalMenuPath = base_path('resources/menu/adminMenu.json'); // Asumiendo que has creado este archivo
-            } elseif (Auth::user()->hasRole('Proveedor')) {
-                $verticalMenuPath = base_path('resources/menu/proveedorMenu.json');
-            } elseif (Auth::user()->hasRole('Repartidor')) {
-                $verticalMenuPath = base_path('resources/menu/repartidorMenu.json');
-            } elseif (Auth::user()->hasRole('Cliente_Corporativo')) {
-                $verticalMenuPath = base_path('resources/menu/clienteMenu.json');
+        if (Auth::guard('web')->check()) {
+            $user = Auth::guard('web')->user();
+            $menuFilePath = '';
+
+            if ($user->hasRole('Administrador')) {
+                $menuFilePath = base_path('resources/menu/adminMenu.json');
+            } elseif ($user->hasRole('Proveedor')) {
+                $menuFilePath = base_path('resources/menu/proveedorMenu.json');
+            } elseif ($user->hasRole('Cliente_Corporativo')) {
+                $menuFilePath = base_path('resources/menu/clienteMenu.json');
             }
-        } else {
-            // Menú para usuarios no autenticados, si fuera necesario
-            $verticalMenuPath = base_path('resources/menu/defaultMenu.json');
+
+            if (File::exists($menuFilePath)) {
+                $verticalMenuJson = File::get($menuFilePath);
+                $verticalMenuData = json_decode($verticalMenuJson);
+            }
+        } elseif (Auth::guard('repartidor')->check()) {
+             $menuFilePath = base_path('resources/menu/repartidorMenu.json');
+             if (File::exists($menuFilePath)) {
+                 $verticalMenuJson = File::get($menuFilePath);
+                 $verticalMenuData = json_decode($verticalMenuJson);
+             }
         }
 
-        if (File::exists($verticalMenuPath)) {
-            $verticalMenuJson = File::get($verticalMenuPath);
-            $verticalMenuData = json_decode($verticalMenuJson);
-            $this->app->make('view')->share('menuData', [$verticalMenuData]);
-        }
-        // Si también usas un menú horizontal, podrías añadir una lógica similar.
-        // Para este proyecto, nos enfocaremos en el menú vertical.
-
+        $this->app->make('view')->share('menuData', [$verticalMenuData]);
     }
 }
