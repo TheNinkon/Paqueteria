@@ -1,0 +1,25 @@
+{
+  "menu": [
+    {
+      "menuHeader": "Panel de Clientes"
+    },
+    {
+      "url": "/cliente/dashboard",
+      "name": "Dashboard",
+      "icon": "menu-icon tf-icons ti ti-building-warehouse",
+      "slug": "cliente-dashboard"
+    },
+    {
+      "url": "/cliente/paquetes",
+      "name": "Mis Paquetes",
+      "icon": "menu-icon tf-icons ti ti-packages",
+      "slug": "cliente-packages-list"
+    },
+    {
+      "url": "/cliente/reportes",
+      "name": "Reportes",
+      "icon": "menu-icon tf-icons ti ti-file-analytics",
+      "slug": "cliente-reports"
+    }
+  ]
+}

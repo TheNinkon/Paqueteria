@@ -1,0 +1,25 @@
+{
+  "menu": [
+    {
+      "menuHeader": "Panel de Proveedor"
+    },
+    {
+      "url": "/proveedor/dashboard",
+      "name": "Dashboard",
+      "icon": "menu-icon tf-icons ti ti-dashboard",
+      "slug": "proveedor-dashboard"
+    },
+    {
+      "url": "/proveedor/repartidores",
+      "name": "Mis Repartidores",
+      "icon": "menu-icon tf-icons ti ti-users",
+      "slug": "proveedor-riders-list"
+    },
+    {
+      "url": "/proveedor/paquetes",
+      "name": "Paquetes Asignados",
+      "icon": "menu-icon tf-icons ti ti-truck-delivery",
+      "slug": "proveedor-packages-list"
+    }
+  ]
+}

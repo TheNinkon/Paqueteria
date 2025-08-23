@@ -64,7 +64,7 @@ Route::middleware(['auth:repartidor'])->prefix('repartidor')->name('repartidor.'
 
 // Rutas públicas (por ejemplo, página de inicio, errores)
 Route::get('/', function () {
-    return view('welcome');
+     return redirect()->route('login');
 });
 
 // Ruta para la página de "no autorizado"

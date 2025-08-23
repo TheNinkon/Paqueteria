@@ -1,33 +1,45 @@
 <?php
-
 namespace App\Providers;
 
-use Illuminate\Support\Facades\View;
-use Illuminate\Routing\Route;
-
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 
 class MenuServiceProvider extends ServiceProvider
 {
-  /**
-   * Register services.
-   */
-  public function register(): void
-  {
-    //
-  }
+    public function register(): void
+    {
+        //
+    }
 
-  /**
-   * Bootstrap services.
-   */
-  public function boot(): void
-  {
-    $verticalMenuJson = file_get_contents(base_path('resources/menu/verticalMenu.json'));
-    $verticalMenuData = json_decode($verticalMenuJson);
-    $horizontalMenuJson = file_get_contents(base_path('resources/menu/horizontalMenu.json'));
-    $horizontalMenuData = json_decode($horizontalMenuJson);
+    public function boot(): void
+    {
+        $verticalMenuPath = '';
+        $horizontalMenuPath = '';
 
-    // Share all menuData to all the views
-    $this->app->make('view')->share('menuData', [$verticalMenuData, $horizontalMenuData]);
-  }
+        // Lógica para cargar el menú dinámicamente según el rol
+        if (Auth::check()) {
+            if (Auth::user()->hasRole('Administrador')) {
+                $verticalMenuPath = base_path('resources/menu/adminMenu.json'); // Asumiendo que has creado este archivo
+            } elseif (Auth::user()->hasRole('Proveedor')) {
+                $verticalMenuPath = base_path('resources/menu/proveedorMenu.json');
+            } elseif (Auth::user()->hasRole('Repartidor')) {
+                $verticalMenuPath = base_path('resources/menu/repartidorMenu.json');
+            } elseif (Auth::user()->hasRole('Cliente_Corporativo')) {
+                $verticalMenuPath = base_path('resources/menu/clienteMenu.json');
+            }
+        } else {
+            // Menú para usuarios no autenticados, si fuera necesario
+            $verticalMenuPath = base_path('resources/menu/defaultMenu.json');
+        }
+
+        if (File::exists($verticalMenuPath)) {
+            $verticalMenuJson = File::get($verticalMenuPath);
+            $verticalMenuData = json_decode($verticalMenuJson);
+            $this->app->make('view')->share('menuData', [$verticalMenuData]);
+        }
+        // Si también usas un menú horizontal, podrías añadir una lógica similar.
+        // Para este proyecto, nos enfocaremos en el menú vertical.
+
+    }
 }

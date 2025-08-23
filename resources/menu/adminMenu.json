@@ -1,0 +1,58 @@
+{
+  "menu": [
+    {
+      "menuHeader": "Panel de Administración"
+    },
+    {
+      "url": "/dashboard",
+      "name": "Dashboard",
+      "icon": "menu-icon tf-icons ti ti-home-2",
+      "slug": "admin-dashboard"
+    },
+    {
+      "name": "Gestión de Usuarios",
+      "icon": "menu-icon tf-icons ti ti-users",
+      "slug": "user-management",
+      "submenu": [
+        {
+          "url": "/empleados",
+          "name": "Repartidores",
+          "slug": "admin-employees-list"
+        },
+        {
+          "url": "/proveedores",
+          "name": "Proveedores",
+          "slug": "admin-vendors-list"
+        },
+        {
+          "url": "/clientes",
+          "name": "Clientes Corporativos",
+          "slug": "admin-clients-list"
+        }
+      ]
+    },
+    {
+      "name": "Gestión de Paquetes",
+      "icon": "menu-icon tf-icons ti ti-package",
+      "slug": "package-management",
+      "submenu": [
+        {
+          "url": "/paquetes",
+          "name": "Listado de Paquetes",
+          "slug": "admin-packages-list"
+        },
+        {
+          "url": "/paquetes/create",
+          "name": "Ingresar Paquete",
+          "slug": "admin-packages-create"
+        }
+      ]
+    },
+    {
+      "url": "/reportes",
+      "name": "Reportes y Trazabilidad",
+      "icon": "menu-icon tf-icons ti ti-chart-bar",
+      "slug": "admin-reports"
+    }
+  ]
+}
