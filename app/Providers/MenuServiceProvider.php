@@ -15,7 +15,7 @@ class MenuServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $verticalMenuData = json_decode('{"menu": []}'); // Menú vacío por defecto
+        $verticalMenuData = json_decode('{"menu": []}');
 
         if (Auth::guard('web')->check()) {
             $user = Auth::guard('web')->user();
@@ -34,11 +34,11 @@ class MenuServiceProvider extends ServiceProvider
                 $verticalMenuData = json_decode($verticalMenuJson);
             }
         } elseif (Auth::guard('repartidor')->check()) {
-             $menuFilePath = base_path('resources/menu/repartidorMenu.json');
-             if (File::exists($menuFilePath)) {
-                 $verticalMenuJson = File::get($menuFilePath);
-                 $verticalMenuData = json_decode($verticalMenuJson);
-             }
+            $menuFilePath = base_path('resources/menu/repartidorMenu.json');
+            if (File::exists($menuFilePath)) {
+                $verticalMenuJson = File::get($menuFilePath);
+                $verticalMenuData = json_decode($verticalMenuJson);
+            }
         }
 
         $this->app->make('view')->share('menuData', [$verticalMenuData]);
