@@ -1,0 +1,13 @@
+{
+  "menu": [
+    {
+      "menuHeader": "Panel de Usuario"
+    },
+    {
+      "url": "/dashboard",
+      "name": "Dashboard",
+      "icon": "menu-icon tf-icons ti ti-home-2",
+      "slug": "user-dashboard"
+    }
+  ]
+}

@@ -5,7 +5,7 @@
   $contentNavbar = $contentNavbar ?? true;
   $containerNav = $containerNav ?? 'container-xxl';
   $isNavbar = $isNavbar ?? true;
-  $isMenu = true; // La variable clave
+  $isMenu = true; // Variable clave para activar el menú
   $isFlex = $isFlex ?? false;
   $isFooter = $isFooter ?? true;
   $customizerHidden = $customizerHidden ?? '';
@@ -43,7 +43,6 @@
         @if ($isNavbar)
           @include('layouts/sections/navbar/navbar')
         @endif
-
         <div class="content-wrapper">
 
           @if ($isFlex)
@@ -58,7 +57,6 @@
         @if ($isFooter)
           @include('layouts/sections/footer/footer')
         @endif
-
         <div class="content-backdrop fade"></div>
       </div>
     </div>
@@ -67,7 +65,6 @@
   @if ($isMenu)
     <div class="layout-overlay layout-menu-toggle"></div>
   @endif
-
   <div class="drag-target"></div>
   </div>
 @endsection

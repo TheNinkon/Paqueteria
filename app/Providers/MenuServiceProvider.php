@@ -12,35 +12,37 @@ class MenuServiceProvider extends ServiceProvider
     {
         //
     }
+public function boot(): void
+{
+    $verticalMenuData = json_decode('{"menu": []}'); // Menú vacío por defecto
 
-    public function boot(): void
-    {
-        $verticalMenuData = json_decode('{"menu": []}');
+    if (Auth::guard('web')->check()) {
+        $user = Auth::guard('web')->user();
+        $menuFilePath = '';
 
-        if (Auth::guard('web')->check()) {
-            $user = Auth::guard('web')->user();
-            $menuFilePath = '';
-
-            if ($user->hasRole('Administrador')) {
-                $menuFilePath = base_path('resources/menu/adminMenu.json');
-            } elseif ($user->hasRole('Proveedor')) {
-                $menuFilePath = base_path('resources/menu/proveedorMenu.json');
-            } elseif ($user->hasRole('Cliente_Corporativo')) {
-                $menuFilePath = base_path('resources/menu/clienteMenu.json');
-            }
-
-            if (File::exists($menuFilePath)) {
-                $verticalMenuJson = File::get($menuFilePath);
-                $verticalMenuData = json_decode($verticalMenuJson);
-            }
-        } elseif (Auth::guard('repartidor')->check()) {
-            $menuFilePath = base_path('resources/menu/repartidorMenu.json');
-            if (File::exists($menuFilePath)) {
-                $verticalMenuJson = File::get($menuFilePath);
-                $verticalMenuData = json_decode($verticalMenuJson);
-            }
+        if ($user->hasRole('Administrador')) {
+            $menuFilePath = base_path('resources/menu/adminMenu.json');
+        } elseif ($user->hasRole('Proveedor')) {
+            $menuFilePath = base_path('resources/menu/proveedorMenu.json');
+        } elseif ($user->hasRole('Cliente_Corporativo')) {
+            $menuFilePath = base_path('resources/menu/clienteMenu.json');
+        } else {
+            // Si el usuario web no tiene un rol específico, usa un menú por defecto
+            $menuFilePath = base_path('resources/menu/defaultWebMenu.json'); // Debes crear este archivo
         }
 
-        $this->app->make('view')->share('menuData', [$verticalMenuData]);
+        if (File::exists($menuFilePath)) {
+            $verticalMenuJson = File::get($menuFilePath);
+            $verticalMenuData = json_decode($verticalMenuJson);
+        }
+    } elseif (Auth::guard('repartidor')->check()) {
+        $menuFilePath = base_path('resources/menu/repartidorMenu.json');
+        if (File::exists($menuFilePath)) {
+            $verticalMenuJson = File::get($menuFilePath);
+            $verticalMenuData = json_decode($verticalMenuJson);
+        }
     }
+
+    $this->app->make('view')->share('menuData', [$verticalMenuData]);
+}
 }
