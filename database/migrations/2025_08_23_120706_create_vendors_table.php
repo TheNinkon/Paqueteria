@@ -14,6 +14,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->string('contact_person')->nullable();
+
+            // Añade la clave foránea para el gerente
+            $table->foreignId('manager_id')->nullable()->constrained('users')->onDelete('set null');
+
             $table->timestamps();
         });
     }

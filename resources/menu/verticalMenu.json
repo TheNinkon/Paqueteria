@@ -5,7 +5,7 @@
     },
     {
       "url": "/dashboard",
-      "name": "Dashboard",
+      "name": "menu_vertical",
       "icon": "menu-icon tf-icons ti ti-home-2",
       "slug": "admin-dashboard"
     },

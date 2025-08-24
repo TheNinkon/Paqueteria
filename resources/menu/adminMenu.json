@@ -6,12 +6,12 @@
     {
       "url": "/dashboard",
       "name": "Dashboard",
-      "icon": "menu-icon tf-icons ti ti-home-2",
+      "icon": "menu-icon icon-base ti tabler-smart-home",
       "slug": "admin-dashboard"
     },
     {
       "name": "Gestión de Usuarios",
-      "icon": "menu-icon tf-icons ti ti-users",
+      "icon": "menu-icon icon-base ti tabler-users",
       "slug": "user-management",
       "submenu": [
         {
@@ -33,7 +33,7 @@
     },
     {
       "name": "Gestión de Paquetes",
-      "icon": "menu-icon tf-icons ti ti-package",
+      "icon": "menu-icon icon-base ti tabler-package",
       "slug": "package-management",
       "submenu": [
         {
@@ -51,7 +51,7 @@
     {
       "url": "/reportes",
       "name": "Reportes y Trazabilidad",
-      "icon": "menu-icon tf-icons ti ti-chart-bar",
+      "icon": "menu-icon icon-base ti tabler-chart-bar",
       "slug": "admin-reports"
     }
   ]

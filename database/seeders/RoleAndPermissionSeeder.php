@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -9,32 +10,32 @@ class RoleAndPermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Reiniciar la caché de permisos
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 2. Crear permisos
-        // Permisos para el guard 'web'
-        $permissionsWeb = [
+        // 1. Crear permisos
+        $permissions = [
             'view_admin_dashboard',
-            'manage_employees',
+            'manage_users',
             'manage_vendors',
-            'manage_packages_admin',
-            'view_reports_admin',
-            'view_vendor_dashboard',
-            'manage_repartidores',
+            'manage_riders',
+            'manage_packages',
+            'view_reports',
+            'view_proveedor_dashboard',
+            'view_proveedor_riders',
             'view_proveedor_packages',
             'view_client_dashboard',
             'view_client_reports',
             'view_client_packages',
+            'manage_gerente_dashboard',
         ];
-        foreach ($permissionsWeb as $permission) {
+
+        foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // Permisos para el guard 'repartidor'
         $permissionsRider = [
             'view_rider_dashboard',
-            'view_own_packages', // Este era el permiso que faltaba
+            'view_own_packages',
             'update_package_status',
             'scan_packages',
         ];
@@ -42,16 +43,20 @@ class RoleAndPermissionSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'repartidor']);
         }
 
-        // 3. Crear roles
+        // 2. Crear roles y asignar permisos
         $adminRole = Role::firstOrCreate(['name' => 'Administrador', 'guard_name' => 'web']);
-        $vendorRole = Role::firstOrCreate(['name' => 'Proveedor', 'guard_name' => 'web']);
-        $clientRole = Role::firstOrCreate(['name' => 'Cliente_Corporativo', 'guard_name' => 'web']);
-        $riderRole = Role::firstOrCreate(['name' => 'Repartidor', 'guard_name' => 'repartidor']);
+        $adminRole->givePermissionTo(Permission::where('guard_name', 'web')->get());
 
-        // 4. Asignar permisos a los roles
-        $adminRole->givePermissionTo($permissionsWeb);
-        $vendorRole->givePermissionTo(['view_vendor_dashboard', 'manage_repartidores', 'view_proveedor_packages']);
-        $clientRole->givePermissionTo(['view_client_dashboard', 'view_client_reports', 'view_client_packages']);
-        $riderRole->givePermissionTo($permissionsRider);
+        $gerenteRole = Role::firstOrCreate(['name' => 'Gerente', 'guard_name' => 'web']);
+        $gerenteRole->givePermissionTo(['manage_gerente_dashboard', 'manage_vendors', 'manage_riders']);
+
+        $proveedorRole = Role::firstOrCreate(['name' => 'Proveedor', 'guard_name' => 'web']);
+        $proveedorRole->givePermissionTo(['view_proveedor_dashboard', 'view_proveedor_riders', 'view_proveedor_packages']);
+
+        $clienteRole = Role::firstOrCreate(['name' => 'Cliente_Corporativo', 'guard_name' => 'web']);
+        $clienteRole->givePermissionTo(['view_client_dashboard', 'view_client_reports', 'view_client_packages']);
+
+        $repartidorRole = Role::firstOrCreate(['name' => 'Repartidor', 'guard_name' => 'repartidor']);
+        $repartidorRole->givePermissionTo(Permission::where('guard_name', 'repartidor')->get());
     }
 }

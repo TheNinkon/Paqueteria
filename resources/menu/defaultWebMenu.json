@@ -6,7 +6,7 @@
     {
       "url": "/dashboard",
       "name": "Dashboard",
-      "icon": "menu-icon tf-icons ti ti-home-2",
+      "icon": "menu-icon icon-base ti tabler-home-2",
       "slug": "user-dashboard"
     }
   ]

@@ -5,20 +5,20 @@
     },
     {
       "url": "/cliente/dashboard",
-      "name": "Dashboard",
-      "icon": "menu-icon tf-icons ti ti-building-warehouse",
+      "name": "cliente",
+      "icon": "menu-icon icon-base ti tabler-smart-home",
       "slug": "cliente-dashboard"
     },
     {
       "url": "/cliente/paquetes",
       "name": "Mis Paquetes",
-      "icon": "menu-icon tf-icons ti ti-packages",
+      "icon": "menu-icon icon-base ti tabler-package",
       "slug": "cliente-packages-list"
     },
     {
       "url": "/cliente/reportes",
       "name": "Reportes",
-      "icon": "menu-icon tf-icons ti ti-file-analytics",
+      "icon": "menu-icon icon-base ti tabler-file-analytics",
       "slug": "cliente-reports"
     }
   ]

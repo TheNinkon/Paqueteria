@@ -17,6 +17,10 @@ return new class extends Migration
             $table->date('start_date');
             $table->enum('status', ['active', 'inactive', 'blocked'])->default('active');
             $table->text('notes')->nullable();
+
+            // Añade la clave foránea para el proveedor
+            $table->foreignId('vendor_id')->nullable()->constrained('vendors')->onDelete('set null');
+
             $table->timestamps();
         });
     }

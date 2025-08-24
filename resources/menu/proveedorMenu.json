@@ -6,19 +6,19 @@
     {
       "url": "/proveedor/dashboard",
       "name": "Dashboard",
-      "icon": "menu-icon tf-icons ti ti-dashboard",
+      "icon": "menu-icon icon-base ti tabler-dashboard",
       "slug": "proveedor-dashboard"
     },
     {
       "url": "/proveedor/repartidores",
       "name": "Mis Repartidores",
-      "icon": "menu-icon tf-icons ti ti-users",
+      "icon": "menu-icon icon-base ti tabler-users",
       "slug": "proveedor-riders-list"
     },
     {
       "url": "/proveedor/paquetes",
       "name": "Paquetes Asignados",
-      "icon": "menu-icon tf-icons ti ti-truck-delivery",
+      "icon": "menu-icon icon-base ti tabler-truck-delivery",
       "slug": "proveedor-packages-list"
     }
   ]

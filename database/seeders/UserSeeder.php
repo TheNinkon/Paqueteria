@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Rider;
+use App\Models\Rider; // Asegúrate de que este modelo existe
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -40,7 +40,7 @@ class UserSeeder extends Seeder
         $client->assignRole('Cliente_Corporativo');
 
         // Crear un usuario repartidor usando el modelo Rider
-        // Se añaden los campos 'phone' y 'start_date' para evitar errores
+        // Se añaden los campos obligatorios 'phone' y 'start_date' para evitar errores de la base de datos
         $rider = Rider::firstOrCreate([
             'email' => 'repartidor@example.com',
         ], [
