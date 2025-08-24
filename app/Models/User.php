@@ -6,17 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles;
-
-    /**
-     * Si usas el guard por defecto "web", no necesitas esto.
-     * Descomenta si quieres fijarlo explícitamente.
-     */
-    // protected string $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.
@@ -50,5 +45,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Define la relación para que un usuario con rol de Gerente pueda tener muchos proveedores a su cargo.
+     */
+    public function managedVendors(): HasMany
+    {
+        return $this->hasMany(Vendor::class, 'manager_id');
     }
 }

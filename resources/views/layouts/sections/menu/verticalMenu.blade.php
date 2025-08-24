@@ -3,7 +3,7 @@
 @php
   use Illuminate\Support\Facades\Auth;
   use Illuminate\Support\Facades\File;
-  use Illuminate\Support\Facades\Route;
+  use Illuminate\Support\Facades\Route; // ¡IMPORTANTE: Añade esta línea!
 
   $user = Auth::user();
   $menuData = json_decode('{"menu": []}'); // Menú vacío por defecto
@@ -13,10 +13,11 @@
 
       if ($user->hasRole('Administrador')) {
           $menuFilePath = base_path('resources/menu/adminMenu.json');
+      } elseif ($user->hasRole('Gerente')) {
+          // Añadimos la lógica para el Gerente
+          $menuFilePath = base_path('resources/menu/gerenteMenu.json');
       } elseif ($user->hasRole('Proveedor')) {
           $menuFilePath = base_path('resources/menu/proveedorMenu.json');
-      } elseif ($user->hasRole('Repartidor')) {
-          $menuFilePath = base_path('resources/menu/repartidorMenu.json');
       } elseif ($user->hasRole('Cliente_Corporativo')) {
           $menuFilePath = base_path('resources/menu/clienteMenu.json');
       }

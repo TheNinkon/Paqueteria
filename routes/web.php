@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Proveedor\DashboardController as ProveedorDashboardController;
 use App\Http\Controllers\Repartidor\DashboardController as RepartidorDashboardController;
 use App\Http\Controllers\Cliente\DashboardController as ClienteDashboardController; // Ojo: "Cliente", no "Customer"
+use App\Http\Controllers\Gerente\DashboardController as GerenteDashboardController;
+
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -52,6 +54,15 @@ Route::middleware(['auth:web'])->group(function () {
             Route::get('reportes', [\App\Http\Controllers\Cliente\PackageController::class, 'reports'])->name('reports.index');
         });
 });
+
+// Rutas protegidas por 'Gerente'
+Route::middleware(['auth:web', 'role:Gerente'])
+    ->prefix('gerente')
+    ->name('gerente.')
+    ->group(function () {
+        Route::get('/dashboard', [GerenteDashboardController::class, 'index'])->name('dashboard');
+        // Aquí puedes agregar más rutas para la gestión de proveedores, repartidores, etc.
+    });
 
 // Auth del repartidor (guard repartidor)
 Route::get('/repartidor/login', [LoginController::class, 'showRiderLoginForm'])->name('repartidor.login');

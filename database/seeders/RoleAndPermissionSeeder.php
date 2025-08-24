@@ -12,8 +12,8 @@ class RoleAndPermissionSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 1. Crear permisos
-        $permissions = [
+        // Crear permisos
+        $permissionsWeb = [
             'view_admin_dashboard',
             'manage_users',
             'manage_vendors',
@@ -28,8 +28,7 @@ class RoleAndPermissionSeeder extends Seeder
             'view_client_packages',
             'manage_gerente_dashboard',
         ];
-
-        foreach ($permissions as $permission) {
+        foreach ($permissionsWeb as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
@@ -43,7 +42,7 @@ class RoleAndPermissionSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'repartidor']);
         }
 
-        // 2. Crear roles y asignar permisos
+        // Crear roles y asignar permisos
         $adminRole = Role::firstOrCreate(['name' => 'Administrador', 'guard_name' => 'web']);
         $adminRole->givePermissionTo(Permission::where('guard_name', 'web')->get());
 

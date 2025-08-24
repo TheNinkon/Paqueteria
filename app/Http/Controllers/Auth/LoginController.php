@@ -33,6 +33,8 @@ class LoginController extends Controller
             // Redirige al usuario al dashboard según su rol
             if (Auth::user()->hasRole('Administrador')) {
                 return redirect()->intended(route('admin.dashboard'));
+            } elseif (Auth::user()->hasRole('Gerente')) { // LÍNEA AÑADIDA
+                return redirect()->intended(route('gerente.dashboard'));
             } elseif (Auth::user()->hasRole('Proveedor')) {
                 return redirect()->intended(route('proveedor.dashboard'));
             } elseif (Auth::user()->hasRole('Cliente_Corporativo')) {
