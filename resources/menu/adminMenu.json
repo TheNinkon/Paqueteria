@@ -4,7 +4,7 @@
       "menuHeader": "Panel de Administración"
     },
     {
-      "url": "/dashboard",
+      "url": "/admin/dashboard",
       "name": "Dashboard",
       "icon": "menu-icon icon-base ti tabler-smart-home",
       "slug": "admin-dashboard"
@@ -15,17 +15,27 @@
       "slug": "user-management",
       "submenu": [
         {
-          "url": "/empleados",
+          "url": "/admin/users",
+          "name": "Usuarios",
+          "slug": "admin-users-list"
+        },
+        {
+          "url": "/admin/users/create",
+          "name": "Crear Usuario",
+          "slug": "admin-users-create"
+        },
+        {
+          "url": "/admin/empleados",
           "name": "Repartidores",
           "slug": "admin-employees-list"
         },
         {
-          "url": "/proveedores",
+          "url": "/admin/proveedores",
           "name": "Proveedores",
           "slug": "admin-vendors-list"
         },
         {
-          "url": "/clientes",
+          "url": "/admin/clientes",
           "name": "Clientes Corporativos",
           "slug": "admin-clients-list"
         }
@@ -37,19 +47,19 @@
       "slug": "package-management",
       "submenu": [
         {
-          "url": "/paquetes",
+          "url": "/admin/paquetes",
           "name": "Listado de Paquetes",
           "slug": "admin-packages-list"
         },
         {
-          "url": "/paquetes/create",
+          "url": "/admin/paquetes/create",
           "name": "Ingresar Paquete",
           "slug": "admin-packages-create"
         }
       ]
     },
     {
-      "url": "/reportes",
+      "url": "/admin/reportes",
       "name": "Reportes y Trazabilidad",
       "icon": "menu-icon icon-base ti tabler-chart-bar",
       "slug": "admin-reports"

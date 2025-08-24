@@ -12,6 +12,8 @@ use App\Http\Controllers\Repartidor\DashboardController as RepartidorDashboardCo
 use App\Http\Controllers\Cliente\DashboardController as ClienteDashboardController; // Ojo: "Cliente", no "Customer"
 use App\Http\Controllers\Gerente\DashboardController as GerenteDashboardController;
 
+// Users (Admin)
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -28,6 +30,10 @@ Route::middleware(['auth:web'])->group(function () {
         ->prefix('admin')->name('admin.')
         ->group(function () {
             Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+            // CRUD de Usuarios (nuevo)
+            Route::resource('users', AdminUserController::class);
+
             Route::resource('empleados', \App\Http\Controllers\Admin\EmployeeController::class);
             Route::resource('proveedores', \App\Http\Controllers\Admin\VendorController::class);
             Route::resource('paquetes', \App\Http\Controllers\Admin\PackageController::class);
