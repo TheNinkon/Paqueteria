@@ -1,25 +1,25 @@
 {
   "menu": [
     {
-      "menuHeader": "Panel de Proveedor"
+      "menuHeader": "Panel de Gerente"
     },
     {
-      "url": "/proveedor/dashboard",
+      "url": "/gerente/dashboard",
       "name": "Dashboard",
       "icon": "menu-icon icon-base ti tabler-dashboard",
-      "slug": "proveedor-dashboard"
+      "slug": "gerente-dashboard"
     },
     {
-      "url": "/proveedor/repartidores",
-      "name": "Mis Repartidores",
-      "icon": "menu-icon icon-base ti tabler-users",
-      "slug": "proveedor-riders-list"
+      "url": "/gerente/packages",
+      "name": "Listado de Paquetes",
+      "icon": "menu-icon icon-base ti tabler-package",
+      "slug": "gerente-packages-index"
     },
     {
-      "url": "/proveedor/paquetes",
-      "name": "Paquetes Asignados",
-      "icon": "menu-icon icon-base ti tabler-truck-delivery",
-      "slug": "proveedor-packages-list"
+      "url": "/gerente/packages/ingest",
+      "name": "Ingresar Paquetes",
+      "icon": "menu-icon icon-base ti tabler-package-import",
+      "slug": "gerente-packages-ingest"
     }
   ]
 }

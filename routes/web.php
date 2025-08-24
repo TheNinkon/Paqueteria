@@ -1,4 +1,5 @@
 <?php
+// File: routes/web.php
 
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,9 @@ use App\Http\Controllers\Gerente\DashboardController as GerenteDashboardControll
 
 // Users (Admin)
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+
+// Controlador de Paquetes para Gerente
+use App\Http\Controllers\Gerente\Package\PackageController as GerentePackageController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -59,6 +63,9 @@ Route::middleware(['auth:web'])->group(function () {
             Route::get('paquetes', [\App\Http\Controllers\Cliente\PackageController::class, 'index'])->name('packages.index');
             Route::get('reportes', [\App\Http\Controllers\Cliente\PackageController::class, 'reports'])->name('reports.index');
         });
+
+    // API compartida para identificación de cliente (usable por varios roles del guard 'web')
+    Route::post('/api/clients/identify', [GerentePackageController::class, 'identifyClient'])->name('api.clients.identify');
 });
 
 // Rutas protegidas por 'Gerente'
@@ -67,7 +74,13 @@ Route::middleware(['auth:web', 'role:Gerente'])
     ->name('gerente.')
     ->group(function () {
         Route::get('/dashboard', [GerenteDashboardController::class, 'index'])->name('dashboard');
-        // Aquí puedes agregar más rutas para la gestión de proveedores, repartidores, etc.
+
+        // Listado y creación/ingesta
+        Route::get('packages', [GerentePackageController::class, 'index'])->name('packages.index');   // GET /gerente/packages
+        Route::post('packages', [GerentePackageController::class, 'store'])->name('packages.store'); // POST /gerente/packages
+
+        // Ingesta (formulario de entrada)
+        Route::get('packages/ingest', [GerentePackageController::class, 'create'])->name('packages.ingest');
     });
 
 // Auth del repartidor (guard repartidor)
