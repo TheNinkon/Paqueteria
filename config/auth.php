@@ -7,8 +7,8 @@ return [
     | Authentication Defaults
     |--------------------------------------------------------------------------
     |
-    | Este array define el guard de autenticación por defecto y el broker de
-    | reseteo de contraseñas. Puedes cambiar estos valores según lo requieras.
+    | This array defines the default authentication guard and password reset
+    | broker for your application. You may change these values as needed.
     |
     */
 
@@ -22,11 +22,11 @@ return [
     | Authentication Guards
     |--------------------------------------------------------------------------
     |
-    | Aquí defines todos los guards de autenticación para tu aplicación.
-    | El guard por defecto "web" usa sesión, pero también añadimos el de
-    | repartidores, que usará el provider "riders".
+    | Here you may define every authentication guard for your application.
+    | The default "web" guard uses session, but we also added the "repartidor"
+    | guard, which will use the "riders" provider.
     |
-    | Soportados: "session"
+    | Supported: "session"
     |
     */
 
@@ -48,10 +48,10 @@ return [
     | User Providers
     |--------------------------------------------------------------------------
     |
-    | Los providers definen cómo se obtienen los usuarios de tu base de datos.
-    | Puedes tener múltiples providers si tienes más de un tipo de usuario.
+    | The providers define how to retrieve users from your database.
+    | You may have multiple providers if you have more than one type of user.
     |
-    | Soportados: "eloquent", "database"
+    | Supported: "eloquent", "database"
     |
     */
 
@@ -73,8 +73,8 @@ return [
     | Resetting Passwords
     |--------------------------------------------------------------------------
     |
-    | Aquí configuras cómo funciona el reseteo de contraseñas.
-    | Cada broker de contraseña se puede asociar a un provider.
+    | Here you may set up how password resets work.
+    | Each password broker can be associated with a provider.
     |
     */
 
@@ -86,7 +86,7 @@ return [
             'throttle' => 60,
         ],
 
-        // Opcional: si también quieres reset de contraseñas para repartidores
+        // Opcional: si también quieres resetear contraseñas para repartidores
         'riders' => [
             'provider' => 'riders',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
@@ -100,8 +100,8 @@ return [
     | Password Confirmation Timeout
     |--------------------------------------------------------------------------
     |
-    | Tiempo en segundos para la expiración de confirmación de contraseña.
-    | Por defecto son 3 horas.
+    | Time in seconds before password confirmation expires.
+    | The default is 3 hours.
     |
     */
 
