@@ -10,16 +10,23 @@
       "slug": "gerente-dashboard"
     },
     {
-      "url": "/gerente/packages",
-      "name": "Listado de Paquetes",
+      "name": "Gestión de Paquetes",
       "icon": "menu-icon icon-base ti tabler-package",
-      "slug": "gerente-packages-index"
-    },
-    {
-      "url": "/gerente/packages/ingest",
-      "name": "Ingresar Paquetes",
-      "icon": "menu-icon icon-base ti tabler-package-import",
-      "slug": "gerente-packages-ingest"
+      "slug": "gerente-paquetes-gestion",
+      "submenu": [
+        {
+          "url": "/gerente/packages",
+          "name": "Listado",
+          "icon": "menu-icon icon-base ti tabler-list",
+          "slug": "gerente-packages-index"
+        },
+        {
+          "url": "/gerente/packages/assign",
+          "name": "Asignar",
+          "icon": "menu-icon icon-base ti tabler-package-export",
+          "slug": "gerente-packages-assign"
+        }
+      ]
     }
   ]
 }

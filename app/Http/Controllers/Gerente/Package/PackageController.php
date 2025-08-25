@@ -8,22 +8,24 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Client;
 use App\Models\Package;
+use App\Models\Rider; // Importa el modelo Rider
 use Illuminate\Http\JsonResponse;
 
 class PackageController extends Controller
 {
     /**
-     * Listado de paquetes (GET /gerente/packages)
+     * Muestra el listado de paquetes en la nave para el gerente.
      */
     public function index()
     {
         $packages = Package::with('client')->latest()->get();
-        $clients  = Client::orderBy('name')->get();
+        $clients  = Client::orderBy('name')->get(); // Necesario para el modal
         return view('content.gerente.packages.index', compact('packages', 'clients'));
     }
 
     /**
-     * Identifica al cliente por el patrón de la etiqueta (POST /api/clients/identify)
+     * Identifica al cliente por el patrón de la etiqueta.
+     * Esta es una API usada por el modal.
      */
     public function identifyClient(Request $request): JsonResponse
     {
@@ -56,7 +58,7 @@ class PackageController extends Controller
     }
 
     /**
-     * Guarda paquetes ingresados (POST /gerente/packages)
+     * Guarda paquetes ingresados en lote.
      */
     public function store(Request $request): JsonResponse
     {
@@ -72,21 +74,17 @@ class PackageController extends Controller
 
             // Lógica para encontrar un Envío ID existente
             foreach ($request->input('codes') as $code) {
-                $lastChars = substr($code, -3);
-                $prefix = substr($code, 0, strlen($code) - 3);
-
-                // Buscamos un paquete que comparta el mismo prefijo
-                $existingPackage = Package::where('unique_code', 'like', $prefix . '%')
+                // Buscamos un paquete que comparta un prefijo similar o un bulto ya guardado
+                $existingPackage = Package::where('unique_code', 'like', substr($code, 0, -3) . '%')
                                           ->where('client_id', $request->input('client_id'))
                                           ->first();
 
                 if ($existingPackage && $existingPackage->shipment_id) {
                     $foundShipmentId = $existingPackage->shipment_id;
-                    break; // Salimos del bucle si encontramos un ID
+                    break;
                 }
             }
 
-            // Si no encontramos un ID, generamos uno nuevo para todo el lote
             $shipmentId = $foundShipmentId ?? 'SHIP-' . now()->format('YmdHis') . Str::random(5);
 
             foreach ($request->input('codes') as $code) {
@@ -110,5 +108,40 @@ class PackageController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Muestra la interfaz para asignar paquetes a un repartidor.
+     */
+    public function assign()
+    {
+        // Trae los paquetes no asignados
+        $unassignedPackages = Package::where('status', 'received')->get();
+        // Trae los repartidores disponibles
+        $riders = Rider::where('status', 'active')->get();
+
+        return view('content.gerente.packages.assign', compact('unassignedPackages', 'riders'));
+    }
+
+    /**
+     * Procesa la asignación de paquetes a un repartidor.
+     */
+    public function performAssignment(Request $request)
+    {
+        $request->validate([
+            'packages' => 'required|array',
+            'packages.*' => 'required|exists:packages,id',
+            'rider_id' => 'required|exists:riders,id'
+        ]);
+
+        $packages = Package::whereIn('id', $request->input('packages'))->get();
+
+        foreach ($packages as $package) {
+            $package->rider_id = $request->input('rider_id');
+            $package->status = 'assigned';
+            $package->save();
+        }
+
+        return redirect()->route('gerente.packages.index')->with('success', 'Paquetes asignados correctamente.');
     }
 }

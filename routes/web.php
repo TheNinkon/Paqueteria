@@ -10,7 +10,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Proveedor\DashboardController as ProveedorDashboardController;
 use App\Http\Controllers\Repartidor\DashboardController as RepartidorDashboardController;
-use App\Http\Controllers\Cliente\DashboardController as ClienteDashboardController; // Ojo: "Cliente", no "Customer"
+use App\Http\Controllers\Cliente\DashboardController as ClienteDashboardController;
 use App\Http\Controllers\Gerente\DashboardController as GerenteDashboardController;
 
 // Users (Admin)
@@ -76,11 +76,12 @@ Route::middleware(['auth:web', 'role:Gerente'])
         Route::get('/dashboard', [GerenteDashboardController::class, 'index'])->name('dashboard');
 
         // Listado y creación/ingesta
-        Route::get('packages', [GerentePackageController::class, 'index'])->name('packages.index');   // GET /gerente/packages
-        Route::post('packages', [GerentePackageController::class, 'store'])->name('packages.store'); // POST /gerente/packages
+        Route::get('packages', [GerentePackageController::class, 'index'])->name('packages.index');
+        Route::post('packages', [GerentePackageController::class, 'store'])->name('packages.store');
 
-        // Ingesta (formulario de entrada)
-        Route::get('packages/ingest', [GerentePackageController::class, 'create'])->name('packages.ingest');
+        // Asignación de paquetes
+        Route::get('packages/assign', [GerentePackageController::class, 'assign'])->name('packages.assign');
+        Route::post('packages/assign', [GerentePackageController::class, 'performAssignment'])->name('packages.performAssignment');
     });
 
 // Auth del repartidor (guard repartidor)
