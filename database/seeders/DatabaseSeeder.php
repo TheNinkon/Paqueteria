@@ -1,20 +1,25 @@
 <?php
+// File: database/seeders/DatabaseSeeder.php
 
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Database\Seeders\RoleAndPermissionSeeder;
-use Database\Seeders\UserSeeder; // Si este es tu único seeder de usuarios
+use Database\Seeders\UserSeeder;
+use Database\Seeders\ClientSeeder; // Importa el seeder de clientes
 
 class DatabaseSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
         $this->call([
             RoleAndPermissionSeeder::class,
             UserSeeder::class,
-            // Agrega otros seeders aquí si los necesitas, pero asegúrate
-            // de que no dupliquen la lógica de creación de usuarios.
+            ClientSeeder::class, // Agrega esta línea para llamar a tu seeder de clientes
+            // Agrega otros seeders aquí si los necesitas
         ]);
     }
 }
