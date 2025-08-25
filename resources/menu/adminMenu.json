@@ -25,6 +25,16 @@
           "slug": "admin-users-create"
         },
         {
+          "url": "/admin/riders",
+          "name": "Riders",
+          "slug": "admin-riders-list"
+        },
+        {
+          "url": "/admin/riders/create",
+          "name": "Crear Rider",
+          "slug": "admin-riders-create"
+        },
+        {
           "url": "/admin/empleados",
           "name": "Repartidores",
           "slug": "admin-employees-list"

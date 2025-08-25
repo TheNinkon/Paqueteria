@@ -1,11 +1,13 @@
+{{-- File: resources/views/content/gerente/packages/modals/assign-packages.blade.php --}}
 <div class="modal fade" id="assignPackagesModal" tabindex="-1" aria-labelledby="assignPackagesModalLabel"
   aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="assignPackagesModalLabel">Asignación Masiva de Paquetes</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
+
       <div class="modal-body">
         <form id="assign-packages-form">
           <div class="mb-3">
@@ -28,6 +30,7 @@
           </div>
         </form>
       </div>
+
       <div class="modal-footer">
         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancelar</button>
         <button type="button" class="btn btn-primary" id="save-assignment-btn">Asignar Paquetes</button>

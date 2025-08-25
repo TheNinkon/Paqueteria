@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Client;
 use App\Models\Package;
-use App\Models\Rider; // Importa el modelo Rider
+use App\Models\Rider;
 use Illuminate\Http\JsonResponse;
 
 class PackageController extends Controller
@@ -72,9 +72,7 @@ class PackageController extends Controller
             $packagesToCreate = [];
             $foundShipmentId = null;
 
-            // Lógica para encontrar un Envío ID existente
             foreach ($request->input('codes') as $code) {
-                // Buscamos un paquete que comparta un prefijo similar o un bulto ya guardado
                 $existingPackage = Package::where('unique_code', 'like', substr($code, 0, -3) . '%')
                                           ->where('client_id', $request->input('client_id'))
                                           ->first();
@@ -115,33 +113,41 @@ class PackageController extends Controller
      */
     public function assign()
     {
-        // Trae los paquetes no asignados
         $unassignedPackages = Package::where('status', 'received')->get();
-        // Trae los repartidores disponibles
         $riders = Rider::where('status', 'active')->get();
+        $clients = Client::orderBy('name')->get();
 
-        return view('content.gerente.packages.assign', compact('unassignedPackages', 'riders'));
+        return view('content.gerente.packages.assign', compact('unassignedPackages', 'riders', 'clients'));
     }
 
     /**
      * Procesa la asignación de paquetes a un repartidor.
      */
-    public function performAssignment(Request $request)
+    public function performAssignment(Request $request): JsonResponse
     {
-        $request->validate([
-            'packages' => 'required|array',
-            'packages.*' => 'required|exists:packages,id',
-            'rider_id' => 'required|exists:riders,id'
-        ]);
+        try {
+            $request->validate([
+                'packages' => 'required|array',
+                'packages.*' => 'required|exists:packages,id',
+                'rider_id' => 'required|exists:riders,id'
+            ]);
 
-        $packages = Package::whereIn('id', $request->input('packages'))->get();
+            $packages = Package::whereIn('id', $request->input('packages'))->get();
 
-        foreach ($packages as $package) {
-            $package->rider_id = $request->input('rider_id');
-            $package->status = 'assigned';
-            $package->save();
+            foreach ($packages as $package) {
+                $package->rider_id = $request->input('rider_id');
+                $package->status = 'assigned';
+                $package->save();
+            }
+
+            return response()->json(['success' => true, 'message' => 'Paquetes asignados correctamente.']);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor al asignar los paquetes.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        return redirect()->route('gerente.packages.index')->with('success', 'Paquetes asignados correctamente.');
     }
 }

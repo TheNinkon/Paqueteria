@@ -10,7 +10,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Proveedor\DashboardController as ProveedorDashboardController;
 use App\Http\Controllers\Repartidor\DashboardController as RepartidorDashboardController;
-use App\Http\Controllers\Cliente\DashboardController as ClienteDashboardController;
+use App\Http\Controllers\Cliente\DashboardController as ClienteDashboardController; // Ojo: "Cliente", no "Customer"
 use App\Http\Controllers\Gerente\DashboardController as GerenteDashboardController;
 
 // Users (Admin)
@@ -35,8 +35,11 @@ Route::middleware(['auth:web'])->group(function () {
         ->group(function () {
             Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-            // CRUD de Usuarios (nuevo)
+            // CRUD de Usuarios
             Route::resource('users', AdminUserController::class);
+
+            // CRUD de Repartidores (NUEVO)
+            Route::resource('riders', \App\Http\Controllers\Admin\RiderController::class);
 
             Route::resource('empleados', \App\Http\Controllers\Admin\EmployeeController::class);
             Route::resource('proveedores', \App\Http\Controllers\Admin\VendorController::class);
@@ -75,7 +78,7 @@ Route::middleware(['auth:web', 'role:Gerente'])
     ->group(function () {
         Route::get('/dashboard', [GerenteDashboardController::class, 'index'])->name('dashboard');
 
-        // Listado y creación/ingesta
+        // Listado y creación
         Route::get('packages', [GerentePackageController::class, 'index'])->name('packages.index');
         Route::post('packages', [GerentePackageController::class, 'store'])->name('packages.store');
 

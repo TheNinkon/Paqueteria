@@ -1,3 +1,4 @@
+{{-- File: resources/views/content/gerente/packages/modals/assign-single.blade.php --}}
 <div class="modal fade" id="assignSingleModal" tabindex="-1" aria-labelledby="assignSingleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">

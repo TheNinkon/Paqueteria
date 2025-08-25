@@ -1,3 +1,4 @@
+{{-- File: resources/views/content/gerente/packages/assign.blade.php --}}
 @extends('layouts.layoutMaster')
 
 @section('title', 'Asignar Paquetes')
@@ -59,4 +60,166 @@
 
   @include('content.gerente.packages.modals.assign-packages')
   @include('content.gerente.packages.modals.assign-single')
+@endsection
+
+@section('page-script')
+  <script>
+    // Este script espera hasta que jQuery esté disponible.
+    // Esto resuelve problemas con el orden de carga en la plantilla.
+    function checkJQueryAndRun() {
+      if (typeof jQuery !== 'undefined') {
+        (function($) {
+          'use strict';
+
+          $(document).ready(function() {
+            const assignPackagesModal = $('#assignPackagesModal');
+            const scanInputAssign = $('#scan_input_assign');
+            const riderSelectMass = $('#rider_id_mass');
+            const packagesToAssignList = $('#packages_to_assign_list');
+            const saveAssignmentBtn = $('#save-assignment-btn');
+            const assignSingleModal = $('#assignSingleModal');
+            const assignSingleBtn = $('#save-single-assignment-btn');
+            const statusAssignMessage = $('#modal-status-assign');
+
+            let scannedPackages = [];
+
+            // Lógica para el modal de asignación masiva
+            assignPackagesModal.on('show.bs.modal', function() {
+              scannedPackages = [];
+              packagesToAssignList.empty();
+              scanInputAssign.val('');
+              riderSelectMass.val('');
+              statusAssignMessage.empty();
+              scanInputAssign.focus();
+            });
+
+            scanInputAssign.keypress(function(e) {
+              if (e.which === 13) {
+                e.preventDefault();
+                const uniqueCode = $(this).val().trim();
+
+                if (uniqueCode && !scannedPackages.some(p => p.unique_code === uniqueCode)) {
+                  const packageFound = @json($unassignedPackages).find(p => p.unique_code === uniqueCode);
+                  if (packageFound) {
+                    scannedPackages.push(packageFound);
+                    packagesToAssignList.append($('<li class="list-group-item">').text(uniqueCode));
+                  } else {
+                    statusAssignMessage.html('<div class="alert alert-warning">El paquete ' + uniqueCode +
+                      ' no está disponible para asignación.</div>');
+                  }
+                } else if (scannedCodes.some(p => p.unique_code === uniqueCode)) {
+                  statusAssignMessage.html('<div class="alert alert-warning">El código ' + uniqueCode +
+                    ' ya ha sido escaneado.</div>');
+                }
+                $(this).val('');
+              }
+            });
+
+            saveAssignmentBtn.on('click', function() {
+              const riderId = riderSelectMass.val();
+              if (scannedPackages.length === 0 || !riderId) {
+                statusAssignMessage.html(
+                  '<div class="alert alert-danger">Por favor, escanea al menos un paquete y selecciona un repartidor.</div>'
+                  );
+                return;
+              }
+
+              const packageIds = scannedPackages.map(p => p.id);
+
+              $.ajax({
+                url: '{{ route('gerente.packages.performAssignment') }}',
+                method: 'POST',
+                data: {
+                  packages: packageIds,
+                  rider_id: riderId,
+                  _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                  if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                      icon: 'success',
+                      title: '¡Éxito!',
+                      text: response.message,
+                      customClass: {
+                        confirmButton: 'btn btn-success'
+                      }
+                    }).then(() => {
+                      location.reload();
+                    });
+                  } else {
+                    alert(response.message);
+                    location.reload();
+                  }
+                },
+                error: function(xhr) {
+                  let errorMessage = 'Ocurrió un error al asignar los paquetes.';
+                  try {
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                      errorMessage = Object.values(xhr.responseJSON.errors).flat().join('<br>');
+                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                      errorMessage = xhr.responseJSON.message;
+                    }
+                  } catch (e) {
+                    console.error("Error parsing server response:", e);
+                  }
+                  statusAssignMessage.html('<div class="alert alert-danger">' + errorMessage + '</div>');
+                }
+              });
+            });
+
+            // Lógica para el modal de asignación individual
+            $('.assign-single-package-btn').on('click', function() {
+              const packageId = $(this).data('package-id');
+              const packageCode = $(this).data('package-code');
+              $('#single-package-id').val(packageId);
+              $('#single-package-code').text(packageCode);
+            });
+
+            assignSingleBtn.on('click', function() {
+              const packageId = $('#single-package-id').val();
+              const riderId = $('#rider_id_single').val();
+
+              if (!packageId || !riderId) {
+                alert('Por favor, selecciona un repartidor.');
+                return;
+              }
+
+              $.ajax({
+                url: '{{ route('gerente.packages.performAssignment') }}',
+                method: 'POST',
+                data: {
+                  packages: [packageId],
+                  rider_id: riderId,
+                  _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                  if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                      icon: 'success',
+                      title: '¡Éxito!',
+                      text: response.message,
+                      customClass: {
+                        confirmButton: 'btn btn-success'
+                      }
+                    }).then(() => {
+                      location.reload();
+                    });
+                  } else {
+                    alert(response.message);
+                    location.reload();
+                  }
+                },
+                error: function(xhr) {
+                  alert('Ocurrió un error al asignar el paquete.');
+                }
+              });
+            });
+          });
+        })(jQuery);
+      } else {
+        setTimeout(checkJQueryAndRun, 50);
+      }
+    }
+    checkJQueryAndRun();
+  </script>
 @endsection
