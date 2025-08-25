@@ -38,7 +38,7 @@ Route::middleware(['auth:web'])->group(function () {
             // CRUD de Usuarios
             Route::resource('users', AdminUserController::class);
 
-            // CRUD de Repartidores (NUEVO)
+            // CRUD de Repartidores (riders)
             Route::resource('riders', \App\Http\Controllers\Admin\RiderController::class);
 
             Route::resource('empleados', \App\Http\Controllers\Admin\EmployeeController::class);
@@ -58,7 +58,7 @@ Route::middleware(['auth:web'])->group(function () {
             Route::get('reportes', [\App\Http\Controllers\Proveedor\ReportController::class, 'index'])->name('reports.index');
         });
 
-    // Cliente corporativo (consistencia: usa \Cliente\* en todo)
+    // Cliente corporativo
     Route::middleware(['role:Cliente_Corporativo'])
         ->prefix('cliente')->name('cliente.')
         ->group(function () {
@@ -67,7 +67,7 @@ Route::middleware(['auth:web'])->group(function () {
             Route::get('reportes', [\App\Http\Controllers\Cliente\PackageController::class, 'reports'])->name('reports.index');
         });
 
-    // API compartida para identificación de cliente (usable por varios roles del guard 'web')
+    // API compartida (identificar cliente)
     Route::post('/api/clients/identify', [GerentePackageController::class, 'identifyClient'])->name('api.clients.identify');
 });
 
@@ -78,13 +78,19 @@ Route::middleware(['auth:web', 'role:Gerente'])
     ->group(function () {
         Route::get('/dashboard', [GerenteDashboardController::class, 'index'])->name('dashboard');
 
-        // Listado y creación
+        // Paquetes
         Route::get('packages', [GerentePackageController::class, 'index'])->name('packages.index');
         Route::post('packages', [GerentePackageController::class, 'store'])->name('packages.store');
-
-        // Asignación de paquetes
         Route::get('packages/assign', [GerentePackageController::class, 'assign'])->name('packages.assign');
         Route::post('packages/assign', [GerentePackageController::class, 'performAssignment'])->name('packages.performAssignment');
+
+        // Incidencias
+        Route::get('incidents', [GerentePackageController::class, 'incidents'])->name('incidents.index');
+        Route::get('incidents/create', [GerentePackageController::class, 'createIncident'])->name('incidents.create');
+        Route::post('incidents', [GerentePackageController::class, 'storeIncident'])->name('incidents.store');
+
+        // API para buscar paquetes (findPackage)
+        Route::post('packages/find', [GerentePackageController::class, 'findPackage'])->name('packages.find');
     });
 
 // Auth del repartidor (guard repartidor)
@@ -100,6 +106,9 @@ Route::middleware(['auth:repartidor'])
         Route::get('/paquetes', [\App\Http\Controllers\Repartidor\PackageController::class, 'index'])->name('packages.index');
         Route::get('/escanear', [\App\Http\Controllers\Repartidor\PackageController::class, 'scan'])->name('packages.scan');
         Route::post('/paquetes/{package}/actualizar-estado', [\App\Http\Controllers\Repartidor\PackageController::class, 'updateStatus'])->name('packages.updateStatus');
+
+        // Reportar incidencia del repartidor
+        Route::post('paquetes/{package}/reportar-incidencia', [\App\Http\Controllers\Repartidor\PackageController::class, 'reportIncident'])->name('packages.reportIncident');
     });
 
 // No autorizado

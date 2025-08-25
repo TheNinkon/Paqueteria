@@ -26,7 +26,7 @@
           <div id="modal-status-assign" class="mt-3"></div>
           <div class="mt-4">
             <h6>Paquetes a asignar:</h6>
-            <ul id="packages_to_assign_list" class="list-group"></ul>
+            <ul id="packages-to-assign-list" class="list-group"></ul>
           </div>
         </form>
       </div>

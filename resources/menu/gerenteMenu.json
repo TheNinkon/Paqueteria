@@ -6,20 +6,39 @@
     {
       "url": "/gerente/dashboard",
       "name": "Dashboard",
-      "icon": "menu-icon icon-base ti tabler-dashboard",
+      "icon": "menu-icon icon-base ti ti-dashboard",
       "slug": "gerente-dashboard"
     },
     {
-      "url": "/gerente/packages",
-      "name": "Listado",
-      "icon": "menu-icon icon-base ti tabler-list",
-      "slug": "gerente-packages-index"
-    },
-    {
-      "url": "/gerente/packages/assign",
-      "name": "Asignar",
-      "icon": "menu-icon icon-base ti tabler-package-export",
-      "slug": "gerente-packages-assign"
+      "name": "Gestión de Paquetes",
+      "icon": "menu-icon icon-base ti ti-package",
+      "slug": "gerente-paquetes-gestion",
+      "submenu": [
+        {
+          "url": "/gerente/packages",
+          "name": "Listado",
+          "icon": "menu-icon icon-base ti ti-list",
+          "slug": "gerente-packages-index"
+        },
+        {
+          "url": "/gerente/packages/assign",
+          "name": "Asignar",
+          "icon": "menu-icon icon-base ti ti-package-export",
+          "slug": "gerente-packages-assign"
+        },
+        {
+          "url": "/gerente/incidents",
+          "name": "Incidencias",
+          "icon": "menu-icon icon-base ti ti-alert-triangle",
+          "slug": "gerente-incidents"
+        },
+        {
+          "url": "/gerente/incidents/create",
+          "name": "Crear Incidencia",
+          "icon": "menu-icon icon-base ti ti-alert-circle",
+          "slug": "gerente-incidents-create"
+        }
+      ]
     }
   ]
 }

@@ -1,4 +1,10 @@
 {{-- File: resources/views/content/gerente/packages/assign.blade.php --}}
+
+{{-- Incluimos el modal de asignación masiva, pasando la lista de repartidores --}}
+@include('content.gerente.packages.modals.assign-packages', compact('riders'))
+
+{{-- Incluimos el modal de asignación individual, pasando la lista de repartidores --}}
+@include('content.gerente.packages.modals.assign-single', compact('riders'))
 @extends('layouts.layoutMaster')
 
 @section('title', 'Asignar Paquetes')
@@ -120,7 +126,7 @@
               if (scannedPackages.length === 0 || !riderId) {
                 statusAssignMessage.html(
                   '<div class="alert alert-danger">Por favor, escanea al menos un paquete y selecciona un repartidor.</div>'
-                  );
+                );
                 return;
               }
 

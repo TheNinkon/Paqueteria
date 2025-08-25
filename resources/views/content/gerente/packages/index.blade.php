@@ -56,6 +56,7 @@
     </div>
   </div>
 
+  {{-- Incluimos el modal de ingreso de paquetes --}}
   @include('content.gerente.packages.modals.add-packages')
 @endsection
 
@@ -63,7 +64,7 @@
   <script>
     // Este script espera hasta que jQuery esté disponible.
     // Esto resuelve problemas con el orden de carga en la plantilla.
-    function checkJQueryAndRun() {
+    function checkAndRunScript() {
       if (typeof jQuery !== 'undefined') {
         (function($) {
           'use strict';
@@ -199,8 +200,7 @@
           });
         })(jQuery);
       } else {
-        // Si jQuery no está disponible, esperamos un poco y lo intentamos de nuevo.
-        setTimeout(checkJQueryAndRun, 100);
+        setTimeout(checkJQueryAndRun, 50);
       }
     }
     checkJQueryAndRun();
