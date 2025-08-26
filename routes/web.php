@@ -117,6 +117,10 @@ Route::middleware(['auth:repartidor'])
         // Reportar incidencia del repartidor
         Route::post('paquetes/{package}/reportar-incidencia', [\App\Http\Controllers\Repartidor\PackageController::class, 'reportIncident'])->name('packages.reportIncident');
     });
+    Route::middleware(['auth', 'role:gerente'])->group(function () {
+    Route::get('/gerente/packages', [PackageController::class, 'index'])->name('gerente.packages.index');
+    Route::get('/gerente/packages/{package}/history', [PackageController::class, 'history'])->name('gerente.packages.history');
+});
 
 // No autorizado
 Route::get('/not-authorized', fn () => view('pages.misc-not-authorized'))->name('not-authorized');

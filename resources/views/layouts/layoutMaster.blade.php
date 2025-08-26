@@ -16,3 +16,6 @@
                   ? 'layouts.layoutFront'
                   : 'layouts.contentNavbarLayout')))
 @endisset
+@section('page-script')
+  <script src="{{ asset('assets/js/gerente-packages.js') }}"></script>
+@endsection

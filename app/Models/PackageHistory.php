@@ -13,13 +13,13 @@ class PackageHistory extends Model
 
     protected $fillable = ['package_id', 'user_id', 'status', 'description'];
 
-    // CORRECCIÓN: Definimos la relación con el paquete
+    // Relación con el paquete
     public function package(): BelongsTo
     {
         return $this->belongsTo(Package::class);
     }
 
-    // CORRECCIÓN: Definimos la relación con el usuario (quien reporta)
+    // CORRECCIÓN: Definimos la relación con el usuario que creó el historial
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

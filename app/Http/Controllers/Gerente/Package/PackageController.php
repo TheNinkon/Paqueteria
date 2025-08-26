@@ -13,6 +13,7 @@ use App\Models\Rider;
 use App\Models\IncidentType;
 use App\Models\Incident;
 use App\Models\PackageHistory;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class PackageController extends Controller
@@ -24,7 +25,7 @@ class PackageController extends Controller
     {
         // Para filtros y selects en UI
         $clients = Client::orderBy('name')->get();
-        $riders  = Rider::orderBy('full_name')->get();
+        $riders  = Rider::where('status', 'active')->orderBy('full_name')->get();
 
         // Filtros
         $query = Package::query();
@@ -315,7 +316,6 @@ class PackageController extends Controller
      */
     public function incidents(Request $request)
     {
-        // Lógica de los filtros para las incidencias
         $query = Incident::query();
 
         if ($request->filled('incident_type_id')) {
@@ -338,15 +338,14 @@ class PackageController extends Controller
 
     /**
      * Resuelve una incidencia.
-     * (Opcional: podrías añadir historial "resolved" si lo manejas como estado)
      */
     public function resolveIncident(Incident $incident): JsonResponse
     {
         $package = $incident->package;
-        $package->status = 'resolved'; // O el estado que prefieras
+        $package->status = 'resolved';
         $package->save();
 
-        $incident->delete(); // Eliminamos la incidencia una vez resuelta
+        $incident->delete();
 
         return response()->json(['success' => true, 'message' => 'Incidencia resuelta correctamente.']);
     }
@@ -370,38 +369,31 @@ class PackageController extends Controller
     /**
      * Historial (para el modal/timeline AJAX).
      */
-    public function history(Package $package)
+     public function history(Package $package)
     {
-        $history = $package->histories()->with('user')->orderBy('created_at', 'asc')->get()->map(function ($item) {
-            $statusTitles = [
-                'received'    => 'Paquete Recibido',
-                'assigned'    => 'Paquete Asignado',
-                'in_delivery' => 'En Reparto',
-                'delivered'   => 'Paquete Entregado',
-                'incident'    => 'Incidencia Creada',
-                'returned'    => 'Devuelto a Origen',
-                'resolved'    => 'Incidencia Resuelta',
-            ];
-
-            $statusClasses = [
-                'received'    => 'warning',
-                'assigned'    => 'info',
-                'in_delivery' => 'info',
-                'delivered'   => 'success',
-                'incident'    => 'danger',
-                'returned'    => 'dark',
-                'resolved'    => 'primary',
-            ];
-
+        $history = $package->histories()->with('user')->get()->map(function ($item) {
             return [
-                'status_title' => $statusTitles[$item->status] ?? ucfirst($item->status),
-                'status_class' => $statusClasses[$item->status] ?? 'secondary',
-                'description'  => $item->description,
-                'created_at'   => $item->created_at->format('d/m/Y H:i'),
-                'extra_info'   => optional($item->user)->full_name,
+                'status' => $item->status,
+                'description' => $item->description,
+                'created_at' => $item->created_at,
+                'user_name' => $item->user->name,
+                'user_avatar' => $item->user->profile_photo_path ?? '1.png', // Asume una imagen por defecto si no hay
+                'color' => $this->getStatusColor($item->status),
             ];
         });
 
         return response()->json($history);
+    }
+
+    private function getStatusColor($status)
+    {
+        return match ($status) {
+            'Recibido' => 'warning',
+            'Asignado' => 'primary',
+            'En reparto' => 'info',
+            'Entregado' => 'success',
+            'Incidencia' => 'danger',
+            default => 'secondary',
+        };
     }
 }

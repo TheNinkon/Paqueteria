@@ -174,11 +174,10 @@
                 </td>
                 <td>{{ $p->created_at?->format('d/m/Y H:i') }}</td>
                 <td>
-                  <button type="button" class="btn btn-icon btn-label-secondary view-history-btn"
-                    data-package-id="{{ $p->id }}" data-bs-toggle="modal" data-bs-target="#historyModal"
-                    {{-- Corrección: El botón activa el modal --}} data-bs-placement="top" title="Ver Historial">
-                    <i class="ti ti-history"></i>
-                  </button>
+                  <a href="#" class="btn btn-sm btn-label-secondary" data-bs-toggle="modal"
+                    data-bs-target="#historyModal" data-bs-id="{{ $package->id }}">
+                    <i class="ti ti-history ti-sm"></i>
+                  </a>
                 </td>
               </tr>
             @empty
@@ -282,7 +281,7 @@
               if (scannedCodes.length === 0 || !clientId) {
                 statusMessageModal.html(
                   '<div class="alert alert-danger">Por favor, escanea al menos un paquete y selecciona un cliente.</div>'
-                  );
+                );
                 return;
               }
 
