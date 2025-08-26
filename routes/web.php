@@ -10,7 +10,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Proveedor\DashboardController as ProveedorDashboardController;
 use App\Http\Controllers\Repartidor\DashboardController as RepartidorDashboardController;
-use App\Http\Controllers\Cliente\DashboardController as ClienteDashboardController; // Ojo: "Cliente", no "Customer"
+use App\Http\Controllers\Cliente\DashboardController as ClienteDashboardController;
 use App\Http\Controllers\Gerente\DashboardController as GerenteDashboardController;
 
 // Users (Admin)
@@ -41,10 +41,14 @@ Route::middleware(['auth:web'])->group(function () {
             // CRUD de Repartidores (riders)
             Route::resource('riders', \App\Http\Controllers\Admin\RiderController::class);
 
+            // Otros recursos
             Route::resource('empleados', \App\Http\Controllers\Admin\EmployeeController::class);
             Route::resource('proveedores', \App\Http\Controllers\Admin\VendorController::class);
             Route::resource('paquetes', \App\Http\Controllers\Admin\PackageController::class);
+
+            // Historial de paquetes (Admin)
             Route::get('paquetes/{package}/historial', [\App\Http\Controllers\Admin\PackageController::class, 'history'])->name('packages.history');
+
             Route::get('reportes', [AdminDashboardController::class, 'reports'])->name('reports');
         });
 
@@ -83,6 +87,9 @@ Route::middleware(['auth:web', 'role:Gerente'])
         Route::post('packages', [GerentePackageController::class, 'store'])->name('packages.store');
         Route::get('packages/assign', [GerentePackageController::class, 'assign'])->name('packages.assign');
         Route::post('packages/assign', [GerentePackageController::class, 'performAssignment'])->name('packages.performAssignment');
+
+        // 🔹 Historial (AJAX) — NUEVA RUTA
+        Route::get('packages/{package}/history', [GerentePackageController::class, 'history'])->name('packages.history');
 
         // Incidencias
         Route::get('incidents', [GerentePackageController::class, 'incidents'])->name('incidents.index');

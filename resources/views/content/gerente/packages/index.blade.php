@@ -4,66 +4,201 @@
 @section('title', 'Gestión de Paquetes')
 
 @section('content')
-  <div class="row">
-    <div class="col-md-12">
-      <h4 class="fw-bold py-3 mb-4">Gestión de Paquetes</h4>
+  <h4 class="fw-bold py-3 mb-4">Gestión de Paquetes</h4>
 
-      @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-      @endif
-
+  {{-- Resto del contenido del dashboard (KPIs, etc.) --}}
+  <div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
       <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Paquetes en la nave</h5>
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPackagesModal">
-            <i class="ti ti-plus me-sm-1"></i> Agregar Paquetes
-          </button>
-        </div>
-
         <div class="card-body">
-          <div class="table-responsive">
-            <table class="table" id="packages-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Código de Bulto</th>
-                  <th>Envío ID</th>
-                  <th>Cliente</th>
-                  <th>Estado</th>
-                  <th>Fecha</th>
-                </tr>
-              </thead>
-              <tbody class="table-border-bottom-0">
-                @forelse($packages as $p)
-                  <tr>
-                    <td>{{ $p->id }}</td>
-                    <td class="fw-medium">{{ $p->unique_code }}</td>
-                    <td>{{ $p->shipment_id }}</td>
-                    <td>{{ $p->client->name ?? '—' }}</td>
-                    <td>{{ $p->status }}</td>
-                    <td>{{ $p->created_at?->format('d/m/Y H:i') }}</td>
-                  </tr>
-                @empty
-                  <tr>
-                    <td colspan="6" class="text-center text-muted">Sin paquetes</td>
-                  </tr>
-                @endforelse
-              </tbody>
-            </table>
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span>Paquetes Totales</span>
+              <div class="d-flex align-items-end mt-2">
+                <h4 class="mb-0 me-2">{{ $kpis['total'] }}</h4>
+              </div>
+              <small class="text-muted">Total de paquetes en el sistema</small>
+            </div>
+            <span class="badge bg-label-primary rounded p-2">
+              <i class="ti ti-box ti-sm"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span>Recibidos</span>
+              <div class="d-flex align-items-end mt-2">
+                <h4 class="mb-0 me-2">{{ $kpis['received'] }}</h4>
+              </div>
+              <small class="text-muted">Paquetes en la nave</small>
+            </div>
+            <span class="badge bg-label-warning rounded p-2">
+              <i class="ti ti-package-import ti-sm"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span>Asignados</span>
+              <div class="d-flex align-items-end mt-2">
+                <h4 class="mb-0 me-2">{{ $kpis['assigned'] }}</h4>
+              </div>
+              <small class="text-muted">Paquetes en reparto</small>
+            </div>
+            <span class="badge bg-label-info rounded p-2">
+              <i class="ti ti-truck-delivery ti-sm"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-start justify-content-between">
+            <div class="content-left">
+              <span>Entregados</span>
+              <div class="d-flex align-items-end mt-2">
+                <h4 class="mb-0 me-2">{{ $kpis['delivered'] }}</h4>
+              </div>
+              <small class="text-muted">Paquetes entregados con éxito</small>
+            </div>
+            <span class="badge bg-label-success rounded p-2">
+              <i class="ti ti-circle-check ti-sm"></i>
+            </span>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  {{-- Incluimos el modal de ingreso de paquetes --}}
-  @include('content.gerente.packages.modals.add-packages')
+  {{-- Resto del contenido (Filtros, etc.) --}}
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Filtros</h5>
+      <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#collapseFilters"
+        aria-expanded="false" aria-controls="collapseFilters">
+        <i class="ti ti-filter me-sm-1"></i>
+        Filtros
+      </button>
+    </div>
+    <div class="card-body collapse" id="collapseFilters">
+      <form id="filter-form" action="{{ route('gerente.packages.index') }}" method="GET">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="search" class="form-label">Buscar Código/Envío</label>
+            <input type="text" id="search" name="search" class="form-control" placeholder="Buscar..."
+              value="{{ request('search') }}">
+          </div>
+          <div class="col-md-4">
+            <label for="client_id" class="form-label">Cliente</label>
+            <select id="client_id" name="client_id" class="form-select">
+              <option value="">Todos</option>
+              @foreach ($clients as $client)
+                <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
+                  {{ $client->name }}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="status" class="form-label">Estado</label>
+            <select id="status" name="status" class="form-select">
+              <option value="">Todos</option>
+              <option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>Recibido</option>
+              <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Asignado</option>
+              <option value="in_delivery" {{ request('status') == 'in_delivery' ? 'selected' : '' }}>En Reparto</option>
+              <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Entregado</option>
+              <option value="incident" {{ request('status') == 'incident' ? 'selected' : '' }}>Incidencia</option>
+            </select>
+          </div>
+          <div class="col-12 mt-4 text-end">
+            <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+            <a href="{{ route('gerente.packages.index') }}" class="btn btn-label-secondary">Limpiar</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Paquetes en la nave</h5>
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPackagesModal">
+        <i class="ti ti-plus me-sm-1"></i> Agregar Paquetes
+      </button>
+    </div>
+
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table" id="packages-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Código de Bulto</th>
+              <th>Envío ID</th>
+              <th>Cliente</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="table-border-bottom-0">
+            @forelse($packages as $p)
+              <tr>
+                <td>{{ $p->id }}</td>
+                <td class="fw-medium">{{ $p->unique_code }}</td>
+                <td>{{ $p->shipment_id }}</td>
+                <td>{{ $p->client->name ?? '—' }}</td>
+                <td>
+                  @php
+                    $statusClass =
+                        [
+                            'received' => 'bg-label-warning',
+                            'assigned' => 'bg-label-info',
+                            'in_delivery' => 'bg-label-info',
+                            'delivered' => 'bg-label-success',
+                            'incident' => 'bg-label-danger',
+                        ][$p->status] ?? 'bg-label-secondary';
+                  @endphp
+                  <span class="badge {{ $statusClass }}">{{ ucfirst($p->status) }}</span>
+                </td>
+                <td>{{ $p->created_at?->format('d/m/Y H:i') }}</td>
+                <td>
+                  <button type="button" class="btn btn-icon btn-label-secondary view-history-btn"
+                    data-package-id="{{ $p->id }}" data-bs-toggle="modal" data-bs-target="#historyModal"
+                    {{-- Corrección: El botón activa el modal --}} data-bs-placement="top" title="Ver Historial">
+                    <i class="ti ti-history"></i>
+                  </button>
+                </td>
+              </tr>
+            @empty
+              <tr>
+                <td colspan="7" class="text-center text-muted">Sin paquetes</td>
+              </tr>
+            @endforelse
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  @include('content.gerente.packages.modals.add-packages', compact('clients'))
+  @include('content.gerente.packages.modals.history-modal')
 @endsection
 
 @section('page-script')
   <script>
     // Este script espera hasta que jQuery esté disponible.
-    // Esto resuelve problemas con el orden de carga en la plantilla.
     function checkAndRunScript() {
       if (typeof jQuery !== 'undefined') {
         (function($) {
@@ -197,12 +332,56 @@
                 }
               });
             });
+
+            // NUEVA LÓGICA para el historial
+            $('.view-history-btn').on('click', function() {
+              const packageId = $(this).data('package-id');
+              const historyModal = $('#historyModal');
+              const historyList = $('#package-history-list');
+
+              // Muestra el modal de forma inmediata
+              historyModal.modal('show');
+              historyList.html('<p class="text-center text-muted">Cargando historial...</p>');
+
+              $.ajax({
+                url: '{{ route('gerente.packages.history', ':packageId') }}'.replace(':packageId',
+                  packageId),
+                method: 'GET',
+                success: function(response) {
+                  historyList.empty();
+                  if (response.length > 0) {
+                    response.forEach(function(history) {
+                      const listItem = `
+                                            <li class="timeline-item">
+                                                <span class="timeline-point timeline-point-${history.status_class}"></span>
+                                                <div class="timeline-event">
+                                                    <div class="d-flex justify-content-between flex-sm-row flex-column mb-sm-0 mb-1">
+                                                        <h6>${history.status_title}</h6>
+                                                        <span class="timeline-event-time">${history.created_at}</span>
+                                                    </div>
+                                                    <p class="mb-0">${history.description}</p>
+                                                    ${history.extra_info ? `<span class="badge bg-label-secondary mt-2">${history.extra_info}</span>` : ''}
+                                                </div>
+                                            </li>`;
+                      historyList.append(listItem);
+                    });
+                  } else {
+                    historyList.append(
+                      '<p class="text-center text-muted">No hay historial para este paquete.</p>');
+                  }
+                },
+                error: function() {
+                  historyList.html(
+                    '<p class="text-center text-danger">Error al cargar el historial del paquete.</p>');
+                }
+              });
+            });
           });
         })(jQuery);
       } else {
-        setTimeout(checkJQueryAndRun, 50);
+        setTimeout(checkAndRunScript, 50);
       }
     }
-    checkJQueryAndRun();
+    checkAndRunScript();
   </script>
 @endsection

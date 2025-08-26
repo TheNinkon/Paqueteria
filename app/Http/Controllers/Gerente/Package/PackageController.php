@@ -6,11 +6,13 @@ namespace App\Http\Controllers\Gerente\Package;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use App\Models\Client;
 use App\Models\Package;
 use App\Models\Rider;
 use App\Models\IncidentType;
 use App\Models\Incident;
+use App\Models\PackageHistory;
 use Illuminate\Http\JsonResponse;
 
 class PackageController extends Controller
@@ -113,10 +115,11 @@ class PackageController extends Controller
     }
 
     /**
-     * Guarda paquetes ingresados en lote.
+     * Guarda paquetes ingresados en lote + crea historial ("received").
      */
     public function store(Request $request): JsonResponse
     {
+        DB::beginTransaction();
         try {
             $request->validate([
                 'codes'     => 'required|array',
@@ -124,13 +127,15 @@ class PackageController extends Controller
                 'client_id' => 'required|exists:clients,id'
             ]);
 
-            $packagesToCreate = [];
-            $foundShipmentId = null;
+            $codes    = $request->input('codes');
+            $clientId = $request->input('client_id');
+            $userId   = auth()->id();
 
             // Reutiliza shipment_id si encuentra uno afín por prefijo
-            foreach ($request->input('codes') as $code) {
+            $foundShipmentId = null;
+            foreach ($codes as $code) {
                 $existingPackage = Package::where('unique_code', 'like', substr($code, 0, -3) . '%')
-                    ->where('client_id', $request->input('client_id'))
+                    ->where('client_id', $clientId)
                     ->first();
 
                 if ($existingPackage && $existingPackage->shipment_id) {
@@ -138,24 +143,36 @@ class PackageController extends Controller
                     break;
                 }
             }
-
             $shipmentId = $foundShipmentId ?? 'SHIP-' . now()->format('YmdHis') . Str::random(5);
 
-            foreach ($request->input('codes') as $code) {
-                $packagesToCreate[] = [
+            // Crear paquete + historial por cada código
+            foreach ($codes as $code) {
+                $package = Package::create([
                     'unique_code' => $code,
-                    'client_id'   => $request->input('client_id'),
+                    'client_id'   => $clientId,
                     'shipment_id' => $shipmentId,
                     'status'      => 'received',
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
-                ];
+                ]);
+
+                // Historial
+                $package->histories()->create([
+                    'status'      => 'received',
+                    'description' => 'Paquete recibido en la nave.',
+                    'user_id'     => $userId,
+                ]);
             }
 
-            Package::insert($packagesToCreate);
-
+            DB::commit();
             return response()->json(['success' => true, 'message' => 'Paquetes ingresados correctamente.']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación.',
+                'errors'  => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno del servidor al guardar los paquetes.',
@@ -177,10 +194,11 @@ class PackageController extends Controller
     }
 
     /**
-     * Procesa la asignación de paquetes a un repartidor.
+     * Procesa la asignación de paquetes a un repartidor + historial ("assigned").
      */
     public function performAssignment(Request $request): JsonResponse
     {
+        DB::beginTransaction();
         try {
             $request->validate([
                 'packages'   => 'required|array',
@@ -188,16 +206,34 @@ class PackageController extends Controller
                 'rider_id'   => 'required|exists:riders,id'
             ]);
 
-            $packages = Package::whereIn('id', $request->input('packages'))->get();
+            $userId  = auth()->id();
+            $rider   = Rider::findOrFail($request->input('rider_id'));
+            $packages = Package::whereIn('id', $request->input('packages'))->lockForUpdate()->get();
 
             foreach ($packages as $package) {
-                $package->rider_id = $request->input('rider_id');
-                $package->status   = 'assigned';
-                $package->save();
+                $package->update([
+                    'rider_id' => $rider->id,
+                    'status'   => 'assigned',
+                ]);
+
+                $package->histories()->create([
+                    'status'      => 'assigned',
+                    'description' => 'Asignado al repartidor: ' . ($rider->full_name ?? ('#'.$rider->id)),
+                    'user_id'     => $userId,
+                ]);
             }
 
+            DB::commit();
             return response()->json(['success' => true, 'message' => 'Paquetes asignados correctamente.']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación.',
+                'errors'  => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno del servidor al asignar los paquetes.',
@@ -216,10 +252,11 @@ class PackageController extends Controller
     }
 
     /**
-     * Guarda la incidencia de un paquete.
+     * Guarda la incidencia de un paquete + historial ("incident").
      */
     public function storeIncident(Request $request): JsonResponse
     {
+        DB::beginTransaction();
         try {
             $validated = $request->validate([
                 'package_id'       => 'required|exists:packages,id',
@@ -227,9 +264,10 @@ class PackageController extends Controller
                 'notes'            => 'nullable|string'
             ]);
 
-            $package = Package::find($validated['package_id']);
+            $package = Package::lockForUpdate()->find($validated['package_id']);
 
             if ($package->status === 'delivered') {
+                DB::rollBack();
                 return response()->json([
                     'success' => false,
                     'message' => 'No se puede crear una incidencia para un paquete ya entregado.'
@@ -246,14 +284,24 @@ class PackageController extends Controller
                 'reported_by_user_id' => auth()->id(),
             ]);
 
+            // Historial
+            $package->histories()->create([
+                'status'      => 'incident',
+                'description' => 'Incidencia creada: ' . IncidentType::find($validated['incident_type_id'])->name,
+                'user_id'     => auth()->id(),
+            ]);
+
+            DB::commit();
             return response()->json(['success' => true, 'message' => 'Incidencia creada con éxito.']);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación.',
                 'errors'  => $e->errors()
             ], 422);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno del servidor al guardar la incidencia.',
@@ -265,12 +313,95 @@ class PackageController extends Controller
     /**
      * Listado de incidencias.
      */
-    public function incidents()
+    public function incidents(Request $request)
     {
-        $incidents = Incident::with(['package.client', 'package.rider'])
-            ->latest()
-            ->get();
+        // Lógica de los filtros para las incidencias
+        $query = Incident::query();
 
-        return view('content.gerente.incidents.index', compact('incidents'));
+        if ($request->filled('incident_type_id')) {
+            $query->where('incident_type_id', $request->input('incident_type_id'));
+        }
+
+        if ($request->filled('status')) {
+            $query->whereHas('package', function ($q) use ($request) {
+                $q->where('status', $request->input('status'));
+            });
+        }
+
+        $incidents = $query->with(['package.client', 'incidentType', 'reporter'])->latest()->get();
+
+        $incidentTypes = IncidentType::all();
+        $packageStatuses = ['received', 'assigned', 'in_delivery', 'delivered', 'incident', 'returned'];
+
+        return view('content.gerente.incidents.index', compact('incidents', 'incidentTypes', 'packageStatuses'));
+    }
+
+    /**
+     * Resuelve una incidencia.
+     * (Opcional: podrías añadir historial "resolved" si lo manejas como estado)
+     */
+    public function resolveIncident(Incident $incident): JsonResponse
+    {
+        $package = $incident->package;
+        $package->status = 'resolved'; // O el estado que prefieras
+        $package->save();
+
+        $incident->delete(); // Eliminamos la incidencia una vez resuelta
+
+        return response()->json(['success' => true, 'message' => 'Incidencia resuelta correctamente.']);
+    }
+
+    /**
+     * Devuelve un paquete a la empresa de origen + historial ("returned").
+     */
+    public function returnToVendor(Package $package)
+    {
+        $package->update(['status' => 'returned']);
+
+        $package->histories()->create([
+            'status'      => 'returned',
+            'description' => 'Devuelto a la empresa de origen.',
+            'user_id'     => auth()->id()
+        ]);
+
+        return redirect()->back()->with('success', 'Paquete marcado como devuelto.');
+    }
+
+    /**
+     * Historial (para el modal/timeline AJAX).
+     */
+    public function history(Package $package)
+    {
+        $history = $package->histories()->with('user')->orderBy('created_at', 'asc')->get()->map(function ($item) {
+            $statusTitles = [
+                'received'    => 'Paquete Recibido',
+                'assigned'    => 'Paquete Asignado',
+                'in_delivery' => 'En Reparto',
+                'delivered'   => 'Paquete Entregado',
+                'incident'    => 'Incidencia Creada',
+                'returned'    => 'Devuelto a Origen',
+                'resolved'    => 'Incidencia Resuelta',
+            ];
+
+            $statusClasses = [
+                'received'    => 'warning',
+                'assigned'    => 'info',
+                'in_delivery' => 'info',
+                'delivered'   => 'success',
+                'incident'    => 'danger',
+                'returned'    => 'dark',
+                'resolved'    => 'primary',
+            ];
+
+            return [
+                'status_title' => $statusTitles[$item->status] ?? ucfirst($item->status),
+                'status_class' => $statusClasses[$item->status] ?? 'secondary',
+                'description'  => $item->description,
+                'created_at'   => $item->created_at->format('d/m/Y H:i'),
+                'extra_info'   => optional($item->user)->full_name,
+            ];
+        });
+
+        return response()->json($history);
     }
 }
