@@ -174,8 +174,8 @@
                 </td>
                 <td>{{ $p->created_at?->format('d/m/Y H:i') }}</td>
                 <td>
-                  <a href="#" class="btn btn-sm btn-label-secondary" data-bs-toggle="modal"
-                    data-bs-target="#historyModal" data-bs-id="{{ $package->id }}">
+                  <a href="#" class="btn btn-sm btn-label-secondary view-history-btn" data-bs-toggle="modal"
+                    data-bs-target="#historyModal" data-bs-id="{{ $p->id }}">
                     <i class="ti ti-history ti-sm"></i>
                   </a>
                 </td>
@@ -332,36 +332,34 @@
               });
             });
 
-            // NUEVA LÓGICA para el historial
-            $('.view-history-btn').on('click', function() {
-              const packageId = $(this).data('package-id');
-              const historyModal = $('#historyModal');
+            // Lógica para el historial
+            $('#historyModal').on('show.bs.modal', function(event) {
+              const button = $(event.relatedTarget);
+              const packageId = button.data('bs-id');
               const historyList = $('#package-history-list');
 
-              // Muestra el modal de forma inmediata
-              historyModal.modal('show');
               historyList.html('<p class="text-center text-muted">Cargando historial...</p>');
 
               $.ajax({
-                url: '{{ route('gerente.packages.history', ':packageId') }}'.replace(':packageId',
-                  packageId),
+                url: '{{ route('gerente.packages.history', ['package' => ':packageId']) }}'.replace(
+                  ':packageId', packageId),
                 method: 'GET',
                 success: function(response) {
                   historyList.empty();
                   if (response.length > 0) {
                     response.forEach(function(history) {
                       const listItem = `
-                                            <li class="timeline-item">
-                                                <span class="timeline-point timeline-point-${history.status_class}"></span>
-                                                <div class="timeline-event">
-                                                    <div class="d-flex justify-content-between flex-sm-row flex-column mb-sm-0 mb-1">
-                                                        <h6>${history.status_title}</h6>
-                                                        <span class="timeline-event-time">${history.created_at}</span>
-                                                    </div>
-                                                    <p class="mb-0">${history.description}</p>
-                                                    ${history.extra_info ? `<span class="badge bg-label-secondary mt-2">${history.extra_info}</span>` : ''}
-                                                </div>
-                                            </li>`;
+                        <li class="timeline-item">
+                            <span class="timeline-point timeline-point-${history.color}"></span>
+                            <div class="timeline-event">
+                                <div class="d-flex justify-content-between flex-sm-row flex-column mb-sm-0 mb-1">
+                                    <h6>${history.status}</h6>
+                                    <span class="timeline-event-time">${history.created_at}</span>
+                                </div>
+                                <p class="mb-0">${history.description}</p>
+                                ${history.extra_info ? `<span class="badge bg-label-secondary mt-2">${history.extra_info}</span>` : ''}
+                            </div>
+                        </li>`;
                       historyList.append(listItem);
                     });
                   } else {

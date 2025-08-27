@@ -11,15 +11,18 @@ class PackageHistory extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['package_id', 'user_id', 'status', 'description'];
+    protected $fillable = [
+        'package_id',
+        'status',
+        'details', // Corregido: 'description' -> 'details'
+        'user_id',
+    ];
 
-    // Relación con el paquete
     public function package(): BelongsTo
     {
         return $this->belongsTo(Package::class);
     }
 
-    // CORRECCIÓN: Definimos la relación con el usuario que creó el historial
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -1,40 +1,50 @@
 <?php
-// File: app/Models/Package.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Package extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [
         'unique_code',
         'shipment_id',
-        'status',
         'client_id',
         'rider_id',
+        'status',
     ];
 
-    public function client(): BelongsTo
+    /**
+     * Get the client that owns the package.
+     */
+    public function client()
     {
         return $this->belongsTo(Client::class);
     }
 
-    public function rider(): BelongsTo
+    /**
+     * Get the rider that owns the package.
+     */
+    public function rider()
     {
         return $this->belongsTo(Rider::class);
     }
 
     /**
-     * Relación 1–1: un paquete puede tener un incidente asociado.
+     * Get the histories for the package.
+     * Esta es la relación que faltaba.
      */
-    public function incident(): HasOne
+    public function histories(): HasMany
     {
-        return $this->hasOne(Incident::class);
+        return $this->hasMany(PackageHistory::class);
     }
 }

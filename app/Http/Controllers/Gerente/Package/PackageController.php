@@ -157,9 +157,9 @@ class PackageController extends Controller
 
                 // Historial
                 $package->histories()->create([
-                    'status'      => 'received',
-                    'description' => 'Paquete recibido en la nave.',
-                    'user_id'     => $userId,
+                    'status' => 'received',
+                    'details' => 'Paquete recibido en la nave.', // Corregido
+                    'user_id' => $userId,
                 ]);
             }
 
@@ -218,9 +218,9 @@ class PackageController extends Controller
                 ]);
 
                 $package->histories()->create([
-                    'status'      => 'assigned',
-                    'description' => 'Asignado al repartidor: ' . ($rider->full_name ?? ('#'.$rider->id)),
-                    'user_id'     => $userId,
+                    'status'  => 'assigned',
+                    'details' => 'Asignado al repartidor: ' . ($rider->full_name ?? ('#'.$rider->id)), // Corregido
+                    'user_id' => $userId,
                 ]);
             }
 
@@ -287,9 +287,9 @@ class PackageController extends Controller
 
             // Historial
             $package->histories()->create([
-                'status'      => 'incident',
-                'description' => 'Incidencia creada: ' . IncidentType::find($validated['incident_type_id'])->name,
-                'user_id'     => auth()->id(),
+                'status'  => 'incident',
+                'details' => 'Incidencia creada: ' . IncidentType::find($validated['incident_type_id'])->name, // Corregido
+                'user_id' => auth()->id(),
             ]);
 
             DB::commit();
@@ -358,9 +358,9 @@ class PackageController extends Controller
         $package->update(['status' => 'returned']);
 
         $package->histories()->create([
-            'status'      => 'returned',
-            'description' => 'Devuelto a la empresa de origen.',
-            'user_id'     => auth()->id()
+            'status'  => 'returned',
+            'details' => 'Devuelto a la empresa de origen.', // Corregido
+            'user_id' => auth()->id()
         ]);
 
         return redirect()->back()->with('success', 'Paquete marcado como devuelto.');
@@ -374,7 +374,7 @@ class PackageController extends Controller
         $history = $package->histories()->with('user')->get()->map(function ($item) {
             return [
                 'status' => $item->status,
-                'description' => $item->description,
+                'description' => $item->details, // Corregido
                 'created_at' => $item->created_at,
                 'user_name' => $item->user->name,
                 'user_avatar' => $item->user->profile_photo_path ?? '1.png', // Asume una imagen por defecto si no hay
@@ -388,11 +388,12 @@ class PackageController extends Controller
     private function getStatusColor($status)
     {
         return match ($status) {
-            'Recibido' => 'warning',
-            'Asignado' => 'primary',
-            'En reparto' => 'info',
-            'Entregado' => 'success',
-            'Incidencia' => 'danger',
+            'received' => 'warning',
+            'assigned' => 'info',
+            'in_delivery' => 'info',
+            'delivered' => 'success',
+            'incident' => 'danger',
+            'returned' => 'secondary',
             default => 'secondary',
         };
     }
