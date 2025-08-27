@@ -1,7 +1,6 @@
 @extends('layouts/layoutMaster')
 
 @php
-  // Importar el Enum al inicio del archivo Blade
   use App\Enums\PackageStatus;
 @endphp
 
@@ -10,7 +9,7 @@
 @section('content')
   <h4 class="fw-bold py-3 mb-4">Gestión de Paquetes</h4>
 
-  {{-- Resto del contenido del dashboard (KPIs, etc.) --}}
+  {{-- KPIs --}}
   <div class="row g-4 mb-4">
     <div class="col-sm-6 col-xl-3">
       <div class="card">
@@ -24,7 +23,7 @@
               <small class="text-muted">Total de paquetes en el sistema</small>
             </div>
             <span class="badge bg-label-primary rounded p-2">
-              <i class="ti ti-box ti-sm"></i>
+              <i class="ti tabler-box ti-sm"></i>
             </span>
           </div>
         </div>
@@ -42,7 +41,7 @@
               <small class="text-muted">Paquetes en la nave</small>
             </div>
             <span class="badge bg-label-warning rounded p-2">
-              <i class="ti ti-package-import ti-sm"></i>
+              <i class="ti tabler-package-import ti-sm"></i>
             </span>
           </div>
         </div>
@@ -60,7 +59,7 @@
               <small class="text-muted">Paquetes en reparto</small>
             </div>
             <span class="badge bg-label-info rounded p-2">
-              <i class="ti ti-truck-delivery ti-sm"></i>
+              <i class="ti tabler-truck-delivery ti-sm"></i>
             </span>
           </div>
         </div>
@@ -78,7 +77,7 @@
               <small class="text-muted">Paquetes entregados con éxito</small>
             </div>
             <span class="badge bg-label-success rounded p-2">
-              <i class="ti ti-circle-check ti-sm"></i>
+              <i class="ti tabler-circle-check ti-sm"></i>
             </span>
           </div>
         </div>
@@ -86,13 +85,13 @@
     </div>
   </div>
 
-  {{-- Resto del contenido (Filtros, etc.) --}}
+  {{-- Filtros --}}
   <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Filtros</h5>
       <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#collapseFilters"
         aria-expanded="false" aria-controls="collapseFilters">
-        <i class="ti ti-filter me-sm-1"></i>
+        <i class="ti tabler-filter me-sm-1"></i>
         Filtros
       </button>
     </div>
@@ -138,7 +137,7 @@
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Paquetes en la nave</h5>
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPackagesModal">
-        <i class="ti ti-plus me-sm-1"></i> Agregar Paquetes
+        <i class="ti tabler-plus me-sm-1"></i> Agregar Paquetes
       </button>
     </div>
 
@@ -182,7 +181,7 @@
                 <td>
                   <a href="#" class="btn btn-sm btn-label-secondary view-history-btn" data-bs-toggle="modal"
                     data-bs-target="#historyModal" data-bs-id="{{ $p->id }}">
-                    <i class="ti ti-history ti-sm"></i>
+                    <i class="ti tabler-history ti-sm"></i>
                   </a>
                 </td>
               </tr>

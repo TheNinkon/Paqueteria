@@ -3,13 +3,13 @@
 namespace App\Actions\Package;
 
 use App\Models\Package;
-use App\Models\PackageHistory;
+use App\Enums\PackageStatus;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class StorePackagesAction
 {
-    public function execute(array $codes, int $clientId, int $userId)
+    public function execute(array $codes, int $clientId)
     {
         DB::beginTransaction();
         try {
@@ -31,13 +31,13 @@ class StorePackagesAction
                     'unique_code' => $code,
                     'client_id'   => $clientId,
                     'shipment_id' => $shipmentId,
-                    'status'      => 'received',
+                    'status'      => PackageStatus::WAREHOUSE_RECEIVED, // Usar el Enum aquí
                 ]);
 
                 $package->histories()->create([
-                    'status' => 'received',
+                    'status' => PackageStatus::WAREHOUSE_RECEIVED, // Usar el Enum aquí
                     'details' => 'Paquete recibido en la nave.',
-                    'user_id' => $userId,
+                    'user_id' => auth()->id(),
                 ]);
             }
 

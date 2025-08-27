@@ -3,36 +3,39 @@
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="addPackagesModalLabel">Asignación Masiva de Paquetes</h5>
+        <h5 class="modal-title" id="addPackagesModalLabel">Ingresar nuevos paquetes</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
 
       <div class="modal-body">
-        <form id="assign-packages-form">
+        <form id="add-packages-form">
           <div class="mb-3">
-            <label for="rider_id_mass" class="form-label">Seleccionar Repartidor</label>
-            <select class="form-select" id="rider_id_mass" name="rider_id" required>
-              <option value="">Selecciona un repartidor</option>
-              @foreach ($riders as $rider)
-                <option value="{{ $rider->id }}">{{ $rider->full_name }}</option>
+            <label class="form-label" for="client-select-modal">Cliente Corporativo</label>
+            <select id="client-select-modal" class="form-select" name="client_id" required>
+              <option value="">Identificando cliente...</option>
+              @foreach ($clients as $client)
+                <option value="{{ $client->id }}">{{ $client->name }}</option>
               @endforeach
             </select>
           </div>
+
           <div class="mb-3">
-            <label for="scan_input_assign" class="form-label">Escanear códigos de bulto</label>
-            <input type="text" class="form-control" id="scan_input_assign" placeholder="Escanea aquí" autofocus>
+            <label class="form-label" for="scan-input-modal">Escanear o ingresar códigos de bulto</label>
+            <input type="text" class="form-control" id="scan-input-modal" placeholder="Escanea aquí" autofocus>
           </div>
-          <div id="modal-status-assign" class="mt-3"></div>
+
+          <div id="modal-status-message" class="mt-3"></div>
+
           <div class="mt-4">
-            <h6>Paquetes a asignar:</h6>
-            <ul id="packages-to-assign-list" class="list-group"></ul>
+            <h6>Códigos a guardar:</h6>
+            <ul id="packages-to-save" class="list-group"></ul>
           </div>
         </form>
       </div>
 
       <div class="modal-footer">
         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="save-assignment-btn">Asignar Paquetes</button>
+        <button type="button" class="btn btn-primary" id="save-all-packages">Guardar Paquetes</button>
       </div>
     </div>
   </div>

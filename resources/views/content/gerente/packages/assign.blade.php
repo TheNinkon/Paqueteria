@@ -21,7 +21,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Paquetes no asignados</h5>
           <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignPackagesModal">
-            <i class="ti ti-truck me-sm-1"></i> Asignar Paquetes
+            <i class="ti tabler-plus me-sm-1"></i> Asignar Paquetes
           </button>
         </div>
         <div class="card-body">

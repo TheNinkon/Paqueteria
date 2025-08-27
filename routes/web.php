@@ -1,5 +1,4 @@
 <?php
-// File: routes/web.php
 
 use Illuminate\Support\Facades\Route;
 
@@ -72,10 +71,10 @@ Route::middleware(['auth:web'])->group(function () {
         });
 
     // Rutas protegidas por 'Gerente'
-    Route::middleware(['role:Gerente'])
-        ->prefix('gerente')
-        ->name('gerente.')
-        ->group(function () {
+Route::middleware(['role:Gerente'])
+    ->prefix('gerente')
+    ->name('gerente.')
+    ->group(function () {
             Route::get('/dashboard', [GerenteDashboardController::class, 'index'])->name('dashboard');
 
             // Paquetes
@@ -91,32 +90,34 @@ Route::middleware(['auth:web'])->group(function () {
             Route::get('incidents', [GerentePackageController::class, 'incidents'])->name('incidents.index');
             Route::get('incidents/create', [GerentePackageController::class, 'createIncident'])->name('incidents.create');
             Route::post('incidents', [GerentePackageController::class, 'storeIncident'])->name('incidents.store');
+            Route::put('incidents/{incident}/resolve', [GerentePackageController::class, 'resolveIncident'])->name('incidents.resolve');
 
             // API para buscar paquetes (findPackage)
+            Route::post('api/clients/identify', [GerentePackageController::class, 'identifyClient'])->name('api.clients.identify');
             Route::post('packages/find', [GerentePackageController::class, 'findPackage'])->name('packages.find');
+
+            // API compartida (identificar cliente)
+            Route::post('api/clients/identify', [GerentePackageController::class, 'identifyClient'])->name('api.clients.identify');
         });
 
-    // API compartida (identificar cliente)
-    Route::post('/api/clients/identify', [GerentePackageController::class, 'identifyClient'])->name('api.clients.identify');
+    // Auth del repartidor (guard repartidor)
+    Route::get('/repartidor/login', [LoginController::class, 'showRiderLoginForm'])->name('repartidor.login');
+    Route::post('/repartidor/login', [LoginController::class, 'loginRider']);
+    Route::post('/repartidor/logout', [LogoutController::class, 'logoutRider'])->name('repartidor.logout');
+
+    Route::middleware(['auth:repartidor'])
+        ->prefix('repartidor')->name('repartidor.')
+        ->group(function () {
+            Route::get('/dashboard', [RepartidorDashboardController::class, 'index'])->name('dashboard');
+            Route::get('/perfil', [\App\Http\Controllers\Repartidor\ProfileController::class, 'show'])->name('profile');
+            Route::get('/paquetes', [\App\Http\Controllers\Repartidor\PackageController::class, 'index'])->name('packages.index');
+            Route::get('/escanear', [\App\Http\Controllers\Repartidor\PackageController::class, 'scan'])->name('packages.scan');
+            Route::post('/paquetes/{package}/actualizar-estado', [\App\Http\Controllers\Repartidor\PackageController::class, 'updateStatus'])->name('packages.updateStatus');
+
+            // Reportar incidencia del repartidor
+            Route::post('paquetes/{package}/reportar-incidencia', [\App\Http\Controllers\Repartidor\PackageController::class, 'reportIncident'])->name('packages.reportIncident');
+        });
+
+    // No autorizado
+    Route::get('/not-authorized', fn () => view('pages.misc-not-authorized'))->name('not-authorized');
 });
-
-// Auth del repartidor (guard repartidor)
-Route::get('/repartidor/login', [LoginController::class, 'showRiderLoginForm'])->name('repartidor.login');
-Route::post('/repartidor/login', [LoginController::class, 'loginRider']);
-Route::post('/repartidor/logout', [LogoutController::class, 'logoutRider'])->name('repartidor.logout');
-
-Route::middleware(['auth:repartidor'])
-    ->prefix('repartidor')->name('repartidor.')
-    ->group(function () {
-        Route::get('/dashboard', [RepartidorDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/perfil', [\App\Http\Controllers\Repartidor\ProfileController::class, 'show'])->name('profile');
-        Route::get('/paquetes', [\App\Http\Controllers\Repartidor\PackageController::class, 'index'])->name('packages.index');
-        Route::get('/escanear', [\App\Http\Controllers\Repartidor\PackageController::class, 'scan'])->name('packages.scan');
-        Route::post('/paquetes/{package}/actualizar-estado', [\App\Http\Controllers\Repartidor\PackageController::class, 'updateStatus'])->name('packages.updateStatus');
-
-        // Reportar incidencia del repartidor
-        Route::post('paquetes/{package}/reportar-incidencia', [\App\Http\Controllers\Repartidor\PackageController::class, 'reportIncident'])->name('packages.reportIncident');
-    });
-
-// No autorizado
-Route::get('/not-authorized', fn () => view('pages.misc-not-authorized'))->name('not-authorized');

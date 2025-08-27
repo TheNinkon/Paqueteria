@@ -31,7 +31,6 @@ class PackageController extends Controller
      */
     public function index(Request $request)
     {
-        // Se utiliza el servicio para obtener los paquetes de forma organizada
         $packages = $this->packageService->getPackagesWithFilters($request);
 
         // Se utilizan los enums para las consultas de KPIs de manera segura
@@ -51,7 +50,6 @@ class PackageController extends Controller
 
     /**
      * Busca un paquete por su código único (AJAX) para crear incidencias en tiempo real.
-     * Esta lógica simple puede permanecer en el controlador.
      */
     public function findPackage(Request $request): JsonResponse
     {
@@ -75,7 +73,6 @@ class PackageController extends Controller
 
     /**
      * Identifica al cliente por el patrón de la etiqueta (AJAX).
-     * Delegamos la lógica a un método del servicio para mayor claridad.
      */
     public function identifyClient(Request $request): JsonResponse
     {
@@ -99,7 +96,6 @@ class PackageController extends Controller
 
     /**
      * Guarda paquetes ingresados en lote.
-     * La lógica compleja y transaccional se ha movido a una "acción".
      */
     public function store(Request $request, StorePackagesAction $storePackagesAction): JsonResponse
     {
@@ -135,7 +131,6 @@ class PackageController extends Controller
 
     /**
      * Procesa la asignación de paquetes a un repartidor.
-     * Se delega a una clase de acción para la lógica transaccional.
      */
     public function performAssignment(Request $request, AssignPackagesAction $assignPackagesAction): JsonResponse
     {
@@ -168,7 +163,6 @@ class PackageController extends Controller
 
     /**
      * Guarda la incidencia de un paquete.
-     * Se delega a una clase de acción para la lógica transaccional.
      */
     public function storeIncident(Request $request, StoreIncidentAction $storeIncidentAction): JsonResponse
     {
@@ -216,15 +210,11 @@ class PackageController extends Controller
 
     /**
      * Resuelve una incidencia.
-     * La lógica se simplifica ya que el estado 'resolved' no está en el enum actual.
      */
     public function resolveIncident(Incident $incident): JsonResponse
     {
-        // El estado 'resolved' no está en el enum, por lo que usaremos 'delivered' o un estado
-        // de resolución alternativo. Para este ejemplo, lo dejaremos como estaba,
-        // pero se recomienda usar un estado del enum como 'delivered' o crear un nuevo caso.
         $package = $incident->package;
-        $package->status = 'resolved'; // O usar PackageStatus::DELIVERED;
+        $package->status = PackageStatus::DELIVERED; // Usamos el Enum
         $package->save();
 
         $incident->delete();
@@ -234,7 +224,6 @@ class PackageController extends Controller
 
     /**
      * Devuelve un paquete a la empresa de origen.
-     * Se delega a una clase de acción para la lógica de negocio.
      */
     public function returnToVendor(Package $package, ReturnToVendorAction $returnToVendorAction)
     {
@@ -248,7 +237,6 @@ class PackageController extends Controller
 
     /**
      * Historial (para el modal/timeline AJAX).
-     * Se usa `->value` para acceder al valor del enum.
      */
     public function history(Package $package): JsonResponse
     {
@@ -268,17 +256,17 @@ class PackageController extends Controller
 
     /**
      * Devuelve el color asociado a un estado del paquete.
-     * Ahora utiliza los valores del enum de forma segura.
      */
     private function getStatusColor(string $status): string
     {
         return match ($status) {
-            PackageStatus::RECEIVED->value => 'warning',
-            PackageStatus::ASSIGNED->value => 'info',
-            PackageStatus::IN_TRANSIT->value => 'info',
-            PackageStatus::DELIVERED->value => 'success',
-            PackageStatus::INCIDENT->value => 'danger',
-            PackageStatus::RETURNED_TO_ORIGIN->value => 'secondary',
+            PackageStatus::RECEIVED->value          => 'warning',
+            PackageStatus::ASSIGNED->value          => 'info',
+            PackageStatus::IN_TRANSIT->value        => 'info',
+            PackageStatus::DELIVERED->value         => 'success',
+            PackageStatus::INCIDENT->value          => 'danger',
+            PackageStatus::RETURNED_TO_ORIGIN->value=> 'secondary',
+            PackageStatus::WAREHOUSE_RECEIVED->value => 'bg-label-info',
             default => 'secondary',
         };
     }
