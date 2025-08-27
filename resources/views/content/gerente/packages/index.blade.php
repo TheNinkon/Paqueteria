@@ -161,16 +161,18 @@
                 <td>{{ $p->client->name ?? '—' }}</td>
                 <td>
                   @php
-                    $statusClass =
-                        [
-                            'received' => 'bg-label-warning',
-                            'assigned' => 'bg-label-info',
-                            'in_delivery' => 'bg-label-info',
-                            'delivered' => 'bg-label-success',
-                            'incident' => 'bg-label-danger',
-                        ][$p->status] ?? 'bg-label-secondary';
+                    $statusClass = match ($p->status) {
+                        'received' => 'bg-label-warning',
+                        'assigned' => 'bg-label-info',
+                        'in_delivery' => 'bg-label-info',
+                        'delivered' => 'bg-label-success',
+                        'incident' => 'bg-label-danger',
+                        'returned_to_origin' => 'bg-label-secondary',
+                        default => 'bg-label-secondary',
+                    };
                   @endphp
-                  <span class="badge {{ $statusClass }}">{{ ucfirst($p->status) }}</span>
+                  <span class="badge {{ $statusClass }}">{{ ucfirst($p->status->value) }}</span>
+
                 </td>
                 <td>{{ $p->created_at?->format('d/m/Y H:i') }}</td>
                 <td>
