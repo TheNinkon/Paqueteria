@@ -1,5 +1,9 @@
-{{-- File: resources/views/content/gerente/packages/index.blade.php --}}
 @extends('layouts/layoutMaster')
+
+@php
+  // Importar el Enum al inicio del archivo Blade
+  use App\Enums\PackageStatus;
+@endphp
 
 @section('title', 'Gestión de Paquetes')
 
@@ -114,11 +118,11 @@
             <label for="status" class="form-label">Estado</label>
             <select id="status" name="status" class="form-select">
               <option value="">Todos</option>
-              <option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>Recibido</option>
-              <option value="assigned" {{ request('status') == 'assigned' ? 'selected' : '' }}>Asignado</option>
-              <option value="in_delivery" {{ request('status') == 'in_delivery' ? 'selected' : '' }}>En Reparto</option>
-              <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Entregado</option>
-              <option value="incident" {{ request('status') == 'incident' ? 'selected' : '' }}>Incidencia</option>
+              @foreach (PackageStatus::cases() as $status)
+                <option value="{{ $status->value }}" {{ request('status') == $status->value ? 'selected' : '' }}>
+                  {{ $status->label() }}
+                </option>
+              @endforeach
             </select>
           </div>
           <div class="col-12 mt-4 text-end">
@@ -161,18 +165,18 @@
                 <td>{{ $p->client->name ?? '—' }}</td>
                 <td>
                   @php
-                    $statusClass = match ($p->status) {
-                        'received' => 'bg-label-warning',
-                        'assigned' => 'bg-label-info',
-                        'in_delivery' => 'bg-label-info',
-                        'delivered' => 'bg-label-success',
-                        'incident' => 'bg-label-danger',
-                        'returned_to_origin' => 'bg-label-secondary',
+                    $statusClass = match ($p->status->value) {
+                        PackageStatus::RECEIVED->value => 'bg-label-warning',
+                        PackageStatus::ASSIGNED->value => 'bg-label-info',
+                        PackageStatus::IN_TRANSIT->value => 'bg-label-info',
+                        PackageStatus::DELIVERED->value => 'bg-label-success',
+                        PackageStatus::INCIDENT->value => 'bg-label-danger',
+                        PackageStatus::RETURNED_TO_ORIGIN->value => 'bg-label-secondary',
+                        PackageStatus::WAREHOUSE_RECEIVED->value => 'bg-label-info',
                         default => 'bg-label-secondary',
                     };
                   @endphp
-                  <span class="badge {{ $statusClass }}">{{ ucfirst($p->status->value) }}</span>
-
+                  <span class="badge {{ $statusClass }}">{{ ucfirst($p->status->label()) }}</span>
                 </td>
                 <td>{{ $p->created_at?->format('d/m/Y H:i') }}</td>
                 <td>
@@ -373,6 +377,7 @@
                   historyList.html(
                     '<p class="text-center text-danger">Error al cargar el historial del paquete.</p>');
                 }
+
               });
             });
           });
