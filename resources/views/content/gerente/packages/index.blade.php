@@ -235,7 +235,6 @@
 
                 if (uniqueCode && !scannedCodes.includes(uniqueCode)) {
                   $.ajax({
-                    url: '{{ route('api.clients.identify') }}',
                     method: 'POST',
                     data: {
                       unique_code: uniqueCode,
