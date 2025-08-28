@@ -3,271 +3,84 @@
 namespace App\Http\Controllers\Gerente\Package;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Models\Client;
 use App\Models\Package;
-use App\Models\Rider;
-use App\Models\Incident;
-use App\Models\IncidentType;
 use App\Enums\PackageStatus;
-use App\Services\PackageService;
 use App\Actions\Package\StorePackagesAction;
-use App\Actions\Package\AssignPackagesAction;
-use App\Actions\Package\StoreIncidentAction;
-use App\Actions\Package\ReturnToVendorAction;
+use Illuminate\Http\Request;
 
 class PackageController extends Controller
 {
-    protected $packageService;
+  // Muestra el listado de paquetes con filtros
+  public function index(Request $request)
+  {
+    $clients = Client::all();
+    $packages = Package::with('client')
+      ->when($request->filled('search'), function ($query) use ($request) {
+        $search = $request->input('search');
+        $query->where('unique_code', 'like', "%{$search}%")
+              ->orWhere('shipment_id', 'like', "%{$search}%");
+      })
+      ->when($request->filled('client_id'), function ($query) use ($request) {
+        $query->where('client_id', $request->input('client_id'));
+      })
+      ->when($request->filled('status'), function ($query) use ($request) {
+        $query->where('status', $request->input('status'));
+      })
+      ->orderByDesc('created_at')
+      ->paginate(15);
 
-    public function __construct(PackageService $packageService)
-    {
-        $this->packageService = $packageService;
+    $kpis = [
+      'total' => Package::count(),
+      'received' => Package::where('status', PackageStatus::RECEIVED)->count(),
+      'assigned' => Package::where('status', PackageStatus::ASSIGNED)->count(),
+      'delivered' => Package::where('status', PackageStatus::DELIVERED)->count(),
+    ];
+
+    return view('content.gerente.packages.index', compact('packages', 'clients', 'kpis'));
+  }
+
+  // Nuevo endpoint para validar el código de bulto y sugerir cliente
+  public function validateCode(Request $request)
+  {
+    $request->validate(['unique_code' => 'required|string|max:255']);
+    $uniqueCode = $request->input('unique_code');
+
+    $client = Client::where('label_pattern', '!=', '')
+      ->get()
+      ->first(function ($c) use ($uniqueCode) {
+        return preg_match('/' . $c->label_pattern . '/', $uniqueCode);
+      });
+
+    if ($client) {
+      return response()->json(['success' => true, 'client' => $client]);
     }
 
-    /**
-     * Muestra el listado de paquetes en la nave para el gerente.
-     */
-    public function index(Request $request)
-    {
-        $packages = $this->packageService->getPackagesWithFilters($request);
+    return response()->json(['success' => false, 'message' => 'No se encontró un cliente para este código.']);
+  }
 
-        // Se utilizan los enums para las consultas de KPIs de manera segura
-        $kpis = [
-            'total'     => Package::count(),
-            'received'  => Package::where('status', PackageStatus::RECEIVED)->count(),
-            'assigned'  => Package::where('status', PackageStatus::ASSIGNED)->count(),
-            'delivered' => Package::where('status', PackageStatus::DELIVERED)->count(),
-            'incidents' => Package::where('status', PackageStatus::INCIDENT)->count(),
-        ];
+  // Endpoint para guardar múltiples paquetes
+  public function store(Request $request, StorePackagesAction $storePackagesAction)
+  {
+    $request->validate([
+        'client_id' => 'required|exists:clients,id',
+        'codes' => 'required|array|min:1',
+        'codes.*' => 'required|string|distinct|max:255',
+    ]);
 
-        $clients = Client::orderBy('name')->get();
-        $riders  = Rider::where('status', 'active')->orderBy('full_name')->get();
+    $result = $storePackagesAction->execute($request->input('codes'), $request->input('client_id'));
 
-        return view('content.gerente.packages.index', compact('packages', 'clients', 'riders', 'kpis'));
+    if ($result['success']) {
+        return response()->json(['success' => true, 'message' => 'Paquetes agregados exitosamente.']);
     }
 
-    /**
-     * Busca un paquete por su código único (AJAX) para crear incidencias en tiempo real.
-     */
-    public function findPackage(Request $request): JsonResponse
-    {
-        try {
-            $request->validate(['unique_code' => 'required|string']);
-            $package = Package::with('client')->where('unique_code', $request->input('unique_code'))->first();
+    return response()->json(['success' => false, 'message' => $result['message']], 500);
+  }
 
-            if (!$package) {
-                return response()->json(['success' => false, 'message' => 'Paquete no encontrado.'], 404);
-            }
-
-            return response()->json(['success' => true, 'package' => $package]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error interno del servidor al buscar el paquete.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Identifica al cliente por el patrón de la etiqueta (AJAX).
-     */
-    public function identifyClient(Request $request): JsonResponse
-    {
-        try {
-            $request->validate(['unique_code' => 'required|string']);
-            $client = $this->packageService->identifyClientFromCode($request->string('unique_code'));
-
-            if (!$client) {
-                return response()->json(['success' => false, 'message' => 'No se pudo identificar al cliente.'], 404);
-            }
-
-            return response()->json(['success' => true, 'client' => $client]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error interno del servidor al identificar el cliente.',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Guarda paquetes ingresados en lote.
-     */
-    public function store(Request $request, StorePackagesAction $storePackagesAction): JsonResponse
-    {
-        $validated = $request->validate([
-            'codes'     => 'required|array',
-            'codes.*'   => 'required|string|unique:packages,unique_code',
-            'client_id' => 'required|exists:clients,id'
-        ]);
-
-        try {
-            $storePackagesAction->execute($validated['codes'], $validated['client_id']);
-            return response()->json(['success' => true, 'message' => 'Paquetes ingresados correctamente.']);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error interno del servidor al guardar los paquetes.',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Muestra la interfaz para asignar paquetes a un repartidor.
-     */
-    public function assign()
-    {
-        $unassignedPackages = Package::where('status', PackageStatus::RECEIVED)->get();
-        $riders  = Rider::where('status', 'active')->get();
-        $clients = Client::orderBy('name')->get();
-
-        return view('content.gerente.packages.assign', compact('unassignedPackages', 'riders', 'clients'));
-    }
-
-    /**
-     * Procesa la asignación de paquetes a un repartidor.
-     */
-    public function performAssignment(Request $request, AssignPackagesAction $assignPackagesAction): JsonResponse
-    {
-        $validated = $request->validate([
-            'packages'   => 'required|array',
-            'packages.*' => 'required|exists:packages,id',
-            'rider_id'   => 'required|exists:riders,id'
-        ]);
-
-        try {
-            $assignPackagesAction->execute($validated['packages'], $validated['rider_id']);
-            return response()->json(['success' => true, 'message' => 'Paquetes asignados correctamente.']);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error interno del servidor al asignar los paquetes.',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Muestra el formulario para crear una incidencia.
-     */
-    public function createIncident()
-    {
-        $incidentTypes = IncidentType::all();
-        return view('content.gerente.incidents.create', compact('incidentTypes'));
-    }
-
-    /**
-     * Guarda la incidencia de un paquete.
-     */
-    public function storeIncident(Request $request, StoreIncidentAction $storeIncidentAction): JsonResponse
-    {
-        $validated = $request->validate([
-            'package_id'       => 'required|exists:packages,id',
-            'incident_type_id' => 'required|exists:incident_types,id',
-            'notes'            => 'nullable|string'
-        ]);
-
-        try {
-            $storeIncidentAction->execute($validated);
-            return response()->json(['success' => true, 'message' => 'Incidencia creada con éxito.']);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error interno del servidor al guardar la incidencia.',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Listado de incidencias.
-     */
-    public function incidents(Request $request)
-    {
-        $query = Incident::query();
-
-        if ($request->filled('incident_type_id')) {
-            $query->where('incident_type_id', $request->input('incident_type_id'));
-        }
-
-        if ($request->filled('status')) {
-            $query->whereHas('package', function ($q) use ($request) {
-                $q->where('status', $request->input('status'));
-            });
-        }
-
-        $incidents = $query->with(['package.client', 'incidentType', 'reporter'])->latest()->get();
-        $incidentTypes = IncidentType::all();
-        $packageStatuses = PackageStatus::cases();
-
-        return view('content.gerente.incidents.index', compact('incidents', 'incidentTypes', 'packageStatuses'));
-    }
-
-    /**
-     * Resuelve una incidencia.
-     */
-    public function resolveIncident(Incident $incident): JsonResponse
-    {
-        $package = $incident->package;
-        $package->status = PackageStatus::DELIVERED; // Usamos el Enum
-        $package->save();
-
-        $incident->delete();
-
-        return response()->json(['success' => true, 'message' => 'Incidencia resuelta correctamente.']);
-    }
-
-    /**
-     * Devuelve un paquete a la empresa de origen.
-     */
-    public function returnToVendor(Package $package, ReturnToVendorAction $returnToVendorAction)
-    {
-        try {
-            $returnToVendorAction->execute($package);
-            return redirect()->back()->with('success', 'Paquete marcado como devuelto.');
-        } catch (\Exception $e) {
-            return redirect()->back()->withErrors('error', 'Error al marcar el paquete como devuelto.');
-        }
-    }
-
-    /**
-     * Historial (para el modal/timeline AJAX).
-     */
-    public function history(Package $package): JsonResponse
-    {
-        $history = $package->histories()->with('user')->get()->map(function ($item) {
-            return [
-                'status' => $item->status,
-                'description' => $item->details,
-                'created_at' => $item->created_at,
-                'user_name' => $item->user->name,
-                'user_avatar' => $item->user->profile_photo_path ?? '1.png',
-                'color' => $this->getStatusColor($item->status->value),
-            ];
-        });
-
-        return response()->json($history);
-    }
-
-    /**
-     * Devuelve el color asociado a un estado del paquete.
-     */
-    private function getStatusColor(string $status): string
-    {
-        return match ($status) {
-            PackageStatus::RECEIVED->value          => 'warning',
-            PackageStatus::ASSIGNED->value          => 'info',
-            PackageStatus::IN_TRANSIT->value        => 'info',
-            PackageStatus::DELIVERED->value         => 'success',
-            PackageStatus::INCIDENT->value          => 'danger',
-            PackageStatus::RETURNED_TO_ORIGIN->value=> 'secondary',
-            PackageStatus::WAREHOUSE_RECEIVED->value => 'bg-label-info',
-            default => 'secondary',
-        };
-    }
+  // Muestra el historial de un paquete específico
+  public function history(Package $package)
+  {
+    $history = $package->history()->orderBy('created_at', 'asc')->get();
+    return response()->json($history);
+  }
 }

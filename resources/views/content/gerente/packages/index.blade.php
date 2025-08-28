@@ -233,8 +233,18 @@
                 e.preventDefault();
                 const uniqueCode = scanInputModal.val().trim();
 
-                if (uniqueCode && !scannedCodes.includes(uniqueCode)) {
+                if (uniqueCode) {
+                  // Verificar si el código ya ha sido escaneado
+                  if (scannedCodes.includes(uniqueCode)) {
+                    statusMessageModal.html('<div class="alert alert-warning">El código <strong>' + uniqueCode +
+                      '</strong> ya ha sido escaneado.</div>');
+                    scanInputModal.val('');
+                    return;
+                  }
+
+                  // Validar el código de bulto con el nuevo endpoint
                   $.ajax({
+                    url: '{{ route('gerente.packages.validateCode') }}',
                     method: 'POST',
                     data: {
                       unique_code: uniqueCode,
@@ -250,7 +260,13 @@
                         statusMessageModal.html(
                           '<div class="alert alert-warning">No se pudo identificar al cliente para el código: <strong>' +
                           uniqueCode + '</strong>. Por favor, selecciona uno.</div>');
+                        clientSelectModal.val('');
                       }
+
+                      scannedCodes.push(uniqueCode);
+                      const listItem = $('<li>').addClass('list-group-item').text(uniqueCode);
+                      packagesToSaveList.append(listItem);
+                      scanInputModal.val('');
                     },
                     error: function(xhr) {
                       let errorMessage = 'Ocurrió un error al identificar el cliente.';
@@ -265,17 +281,10 @@
                       }
                       statusMessageModal.html('<div class="alert alert-danger">' + errorMessage +
                         '</div>');
+                      scanInputModal.val('');
                     }
                   });
-
-                  scannedCodes.push(uniqueCode);
-                  const listItem = $('<li>').addClass('list-group-item').text(uniqueCode);
-                  packagesToSaveList.append(listItem);
-                } else if (scannedCodes.includes(uniqueCode)) {
-                  statusMessageModal.html('<div class="alert alert-warning">El código <strong>' + uniqueCode +
-                    '</strong> ya ha sido escaneado.</div>');
                 }
-                scanInputModal.val('');
               }
             });
 
