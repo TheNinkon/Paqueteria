@@ -1,4 +1,4 @@
-@extends('layouts/layoutMaster')
+@extends('layouts/contentNavbarLayout')
 
 @php
   use App\Enums\PackageStatus;
@@ -202,197 +202,50 @@
 
 @section('page-script')
   <script>
-    // Este script espera hasta que jQuery esté disponible.
-    function checkAndRunScript() {
-      if (typeof jQuery !== 'undefined') {
-        (function($) {
-          'use strict';
+    // Solo lógica del historial; el modal maneja el flujo de escaneo/guardado vía @push('page-script')
+    (function() {
+      function init() {
+        const $ = window.jQuery;
+        if (!$) return setTimeout(init, 50);
 
-          $(document).ready(function() {
-            const addPackagesModal = $('#addPackagesModal');
-            const scanInputModal = $('#scan-input-modal');
-            const clientSelectModal = $('#client-select-modal');
-            const statusMessageModal = $('#modal-status-message');
-            const packagesToSaveList = $('#packages-to-save');
-            const saveButton = $('#save-all-packages');
+        $('#historyModal').on('show.bs.modal', function(event) {
+          const button = $(event.relatedTarget);
+          const packageId = button.data('bs-id');
+          const historyList = $('#package-history-list');
+          historyList.html('<p class="text-center text-muted">Cargando historial...</p>');
 
-            let scannedCodes = [];
-
-            addPackagesModal.on('show.bs.modal', function() {
-              scannedCodes = [];
-              packagesToSaveList.empty();
-              statusMessageModal.empty();
-              clientSelectModal.val('');
-              scanInputModal.val('');
-              scanInputModal.focus();
-            });
-
-            // Lógica para el campo de escaneo
-            scanInputModal.keypress(function(e) {
-              if (e.which === 13) {
-                e.preventDefault();
-                const uniqueCode = scanInputModal.val().trim();
-
-                if (uniqueCode) {
-                  // Verificar si el código ya ha sido escaneado
-                  if (scannedCodes.includes(uniqueCode)) {
-                    statusMessageModal.html('<div class="alert alert-warning">El código <strong>' + uniqueCode +
-                      '</strong> ya ha sido escaneado.</div>');
-                    scanInputModal.val('');
-                    return;
-                  }
-
-                  // Validar el código de bulto con el nuevo endpoint
-                  $.ajax({
-                    url: '{{ route('gerente.packages.validateCode') }}',
-                    method: 'POST',
-                    data: {
-                      unique_code: uniqueCode,
-                      _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                      if (response.success && response.client) {
-                        statusMessageModal.html(
-                          '<div class="alert alert-success">Cliente identificado: <strong>' + response
-                          .client.name + '</strong></div>');
-                        clientSelectModal.val(response.client.id);
-                      } else {
-                        statusMessageModal.html(
-                          '<div class="alert alert-warning">No se pudo identificar al cliente para el código: <strong>' +
-                          uniqueCode + '</strong>. Por favor, selecciona uno.</div>');
-                        clientSelectModal.val('');
-                      }
-
-                      scannedCodes.push(uniqueCode);
-                      const listItem = $('<li>').addClass('list-group-item').text(uniqueCode);
-                      packagesToSaveList.append(listItem);
-                      scanInputModal.val('');
-                    },
-                    error: function(xhr) {
-                      let errorMessage = 'Ocurrió un error al identificar el cliente.';
-                      try {
-                        if (xhr.responseJSON && xhr.responseJSON.errors) {
-                          errorMessage = Object.values(xhr.responseJSON.errors).flat().join('<br>');
-                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                          errorMessage = xhr.responseJSON.message;
-                        }
-                      } catch (e) {
-                        console.error("Error parsing server response:", e);
-                      }
-                      statusMessageModal.html('<div class="alert alert-danger">' + errorMessage +
-                        '</div>');
-                      scanInputModal.val('');
-                    }
-                  });
-                }
-              }
-            });
-
-            // Lógica para el botón de guardar
-            saveButton.on('click', function() {
-              const clientId = clientSelectModal.val();
-              if (scannedCodes.length === 0 || !clientId) {
-                statusMessageModal.html(
-                  '<div class="alert alert-danger">Por favor, escanea al menos un paquete y selecciona un cliente.</div>'
-                );
-                return;
-              }
-
-              $.ajax({
-                url: '{{ route('gerente.packages.store') }}',
-                method: 'POST',
-                data: {
-                  codes: scannedCodes,
-                  client_id: clientId,
-                  _token: '{{ csrf_token() }}'
-                },
-                success: function(response) {
-                  if (response.success) {
-                    if (typeof Swal !== 'undefined') {
-                      Swal.fire({
-                        icon: 'success',
-                        title: '¡Éxito!',
-                        text: response.message,
-                        customClass: {
-                          confirmButton: 'btn btn-success'
-                        }
-                      }).then(() => {
-                        location.reload();
-                      });
-                    } else {
-                      alert(response.message);
-                      location.reload();
-                    }
-                    addPackagesModal.hide();
-                  } else {
-                    statusMessageModal.html('<div class="alert alert-danger">Error: ' + response.message +
-                      '</div>');
-                  }
-                },
-                error: function(xhr) {
-                  let errorMessage = 'Ocurrió un error al guardar los paquetes.';
-                  try {
-                    if (xhr.responseJSON && xhr.responseJSON.errors) {
-                      errorMessage = Object.values(xhr.responseJSON.errors).flat().join('<br>');
-                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                      errorMessage = xhr.responseJSON.message;
-                    }
-                  } catch (e) {
-                    console.error("Error parsing server response:", e);
-                  }
-                  statusMessageModal.html('<div class="alert alert-danger">' + errorMessage + '</div>');
-                }
-              });
-            });
-
-            // Lógica para el historial
-            $('#historyModal').on('show.bs.modal', function(event) {
-              const button = $(event.relatedTarget);
-              const packageId = button.data('bs-id');
-              const historyList = $('#package-history-list');
-
-              historyList.html('<p class="text-center text-muted">Cargando historial...</p>');
-
-              $.ajax({
-                url: '{{ route('gerente.packages.history', ['package' => ':packageId']) }}'.replace(
-                  ':packageId', packageId),
-                method: 'GET',
-                success: function(response) {
-                  historyList.empty();
-                  if (response.length > 0) {
-                    response.forEach(function(history) {
-                      const listItem = `
-                        <li class="timeline-item">
-                            <span class="timeline-point timeline-point-${history.color}"></span>
-                            <div class="timeline-event">
-                                <div class="d-flex justify-content-between flex-sm-row flex-column mb-sm-0 mb-1">
-                                    <h6>${history.status}</h6>
-                                    <span class="timeline-event-time">${history.created_at}</span>
-                                </div>
-                                <p class="mb-0">${history.description}</p>
-                                ${history.extra_info ? `<span class="badge bg-label-secondary mt-2">${history.extra_info}</span>` : ''}
+          $.ajax({
+            url: '{{ route('gerente.packages.history', ['package' => ':packageId']) }}'.replace(':packageId', packageId),
+            method: 'GET',
+            success: function(response) {
+              historyList.empty();
+              if (response.length > 0) {
+                response.forEach(function(history) {
+                  const listItem = `
+                    <li class="timeline-item">
+                        <span class="timeline-point timeline-point-${history.color}"></span>
+                        <div class="timeline-event">
+                            <div class="d-flex justify-content-between flex-sm-row flex-column mb-sm-0 mb-1">
+                                <h6>${history.status}</h6>
+                                <span class="timeline-event-time">${history.created_at}</span>
                             </div>
-                        </li>`;
-                      historyList.append(listItem);
-                    });
-                  } else {
-                    historyList.append(
-                      '<p class="text-center text-muted">No hay historial para este paquete.</p>');
-                  }
-                },
-                error: function() {
-                  historyList.html(
-                    '<p class="text-center text-danger">Error al cargar el historial del paquete.</p>');
-                }
-
-              });
-            });
+                            <p class="mb-0">${history.description}</p>
+                            ${history.extra_info ? `<span class="badge bg-label-secondary mt-2">${history.extra_info}</span>` : ''}
+                        </div>
+                    </li>`;
+                  historyList.append(listItem);
+                });
+              } else {
+                historyList.append('<p class="text-center text-muted">No hay historial para este paquete.</p>');
+              }
+            },
+            error: function() {
+              historyList.html('<p class="text-center text-danger">Error al cargar el historial del paquete.</p>');
+            }
           });
-        })(jQuery);
-      } else {
-        setTimeout(checkAndRunScript, 50);
+        });
       }
-    }
-    checkAndRunScript();
+      init();
+    })();
   </script>
 @endsection

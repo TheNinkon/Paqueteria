@@ -51,17 +51,57 @@
       const scanInputModal = $('#scanInputModal');
       const submitPackagesBtn = $('#submitPackagesBtn');
       const clientSelectModal = $('#modalAddClient');
+      const statusMessageModal = $('#statusMessageModal');
       let scannedCodes = [];
 
+      // Reset al abrir
+      $('#addPackagesModal').on('show.bs.modal', function() {
+        scannedCodes = [];
+        scannedCodesList.empty();
+        statusMessageModal.empty();
+        clientSelectModal.val('');
+        scanInputModal.val('');
+        setTimeout(() => scanInputModal.trigger('focus'), 200);
+      });
+
+      // Escaneo: detectar cliente automáticamente por patrón y apilar código
       scanInputModal.on('keypress', function(e) {
         if (e.key === 'Enter') {
           e.preventDefault();
           const uniqueCode = scanInputModal.val().trim();
-          if (uniqueCode && !scannedCodes.includes(uniqueCode)) {
-            scannedCodes.push(uniqueCode);
-            scannedCodesList.append('<li class="list-group-item">' + uniqueCode + '</li>');
+          if (!uniqueCode) return;
+          if (scannedCodes.includes(uniqueCode)) {
+            statusMessageModal.html('<div class="alert alert-warning">El código <strong>' + uniqueCode + '</strong> ya ha sido escaneado.</div>');
             scanInputModal.val('');
+            return;
           }
+
+          $.ajax({
+            url: '{{ route('gerente.packages.validateCode') }}',
+            method: 'POST',
+            data: {
+              unique_code: uniqueCode,
+              _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+              if (response.success && response.client) {
+                statusMessageModal.html('<div class="alert alert-success">Cliente identificado: <strong>' + response.client.name + '</strong></div>');
+                clientSelectModal.val(response.client.id);
+              } else {
+                statusMessageModal.html('<div class="alert alert-warning">No se pudo identificar el cliente para <strong>' + uniqueCode + '</strong>. Selecciónalo manualmente.</div>');
+              }
+              scannedCodes.push(uniqueCode);
+              scannedCodesList.append('<li class="list-group-item">' + uniqueCode + '</li>');
+              scanInputModal.val('');
+            },
+            error: function(xhr) {
+              let msg = 'Error al validar el código.';
+              try {
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+              } catch (e) {}
+              statusMessageModal.html('<div class="alert alert-danger">' + msg + '</div>');
+            }
+          });
         }
       });
 
@@ -69,7 +109,7 @@
         e.preventDefault();
 
         const clientId = clientSelectModal.val();
-
+        
         // Desactivar el botón para evitar envíos dobles
         submitPackagesBtn.prop('disabled', true).text('Guardando...');
 
@@ -79,6 +119,12 @@
           client_id: clientId,
           codes: scannedCodes
         };
+
+        if (!formData.client_id || formData.codes.length === 0) {
+          statusMessageModal.html('<div class="alert alert-danger">Selecciona un cliente y escanea al menos un código.</div>');
+          submitPackagesBtn.prop('disabled', false).text('Guardar Paquetes');
+          return;
+        }
 
         $.ajax({
           url: '{{ route('gerente.packages.store') }}',

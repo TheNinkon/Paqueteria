@@ -9,4 +9,10 @@ class DashboardController extends Controller
     {
         return view('content.admin.dashboard');
     }
+
+    public function reports()
+    {
+        // Vista simple de Reports para Administrador
+        return view('content.admin.reports');
+    }
 }

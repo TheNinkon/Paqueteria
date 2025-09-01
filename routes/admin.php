@@ -8,8 +8,11 @@ use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Admin\PackageController;
 
-Route::middleware(['auth:web', 'role:Admin'])->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth:web', 'role:Administrador'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('users', AdminUserController::class);
     Route::resource('riders', RiderController::class);
@@ -17,6 +20,6 @@ Route::middleware(['auth:web', 'role:Admin'])->group(function () {
     Route::resource('proveedores', VendorController::class);
     Route::resource('paquetes', PackageController::class);
 
-    Route::get('paquetes/{package}/historial', [PackageController::class, 'history'])->name('packages.history');
-    Route::get('reportes', [AdminDashboardController::class, 'reports'])->name('reports');
-});
+        Route::get('paquetes/{package}/historial', [PackageController::class, 'history'])->name('packages.history');
+        Route::get('reportes', [AdminDashboardController::class, 'reports'])->name('reports');
+    });

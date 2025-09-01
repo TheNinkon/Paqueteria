@@ -1,5 +1,5 @@
 {{-- File: resources/views/content/gerente/incidents/create.blade.php --}}
-@extends('layouts.layoutMaster')
+@extends('layouts.contentNavbarLayout')
 
 @section('title', 'Crear Incidencia')
 

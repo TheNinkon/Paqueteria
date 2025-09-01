@@ -16,6 +16,9 @@ Route::middleware(['auth:web', 'role:Gerente'])
         Route::get('packages/assign', [GerentePackageController::class, 'assign'])->name('packages.assign');
         Route::post('packages/assign', [GerentePackageController::class, 'performAssignment'])->name('packages.performAssignment');
 
+        // Validación del código de bulto
+        Route::post('packages/validate-code', [GerentePackageController::class, 'validateCode'])->name('packages.validateCode');
+
         // Historial (AJAX)
         Route::get('packages/{package}/history', [GerentePackageController::class, 'history'])->name('packages.history');
 

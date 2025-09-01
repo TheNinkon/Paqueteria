@@ -5,7 +5,7 @@
 
 {{-- Incluimos el modal de asignación individual, pasando la lista de repartidores --}}
 @include('content.gerente.packages.modals.assign-single', compact('riders'))
-@extends('layouts.layoutMaster')
+@extends('layouts.contentNavbarLayout')
 
 @section('title', 'Asignar Paquetes')
 
@@ -64,8 +64,7 @@
     </div>
   </div>
 
-  @include('content.gerente.packages.modals.assign-packages')
-  @include('content.gerente.packages.modals.assign-single')
+  {{-- Modales ya incluidos arriba --}}
 @endsection
 
 @section('page-script')

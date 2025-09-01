@@ -21,6 +21,7 @@
 
 <!-- BEGIN: Page JS-->
 @yield('page-script')
+@stack('page-script')
 <!-- END: Page JS-->
 
 <!-- app JS -->

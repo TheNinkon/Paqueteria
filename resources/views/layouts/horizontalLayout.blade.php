@@ -1,11 +1,8 @@
-@isset($pageConfigs)
-  {!! Helper::updatePageConfig($pageConfigs) !!}
-@endisset
+@extends('layouts/commonMaster')
 @php
+  if (isset($pageConfigs)) { \App\Helpers\Helpers::updatePageConfig($pageConfigs); }
   $configData = Helper::appClasses();
 @endphp
-
-@extends('layouts/commonMaster')
 @php
   $menuHorizontal = true;
   $navbarFull = true;

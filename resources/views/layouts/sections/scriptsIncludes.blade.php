@@ -21,6 +21,14 @@
       ? $_COOKIE[$primaryColorCookieName]
       : $configData['color'] ?? null;
 @endphp
+<!-- Ensure templateCustomizer exists before helpers -->
+<script>
+  window.templateCustomizer = window.templateCustomizer || {
+    settings: { defaultTheme: 'light' },
+    _getSetting: function() { return null; }
+  };
+  window.TemplateCustomizer = window.TemplateCustomizer || { SKINS: [] };
+  </script>
 <!-- laravel style -->
 @vite(['resources/assets/vendor/js/helpers.js'])
 <!-- beautify ignore:start -->
